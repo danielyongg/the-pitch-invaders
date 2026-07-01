@@ -31,20 +31,20 @@ export default async function Navbar() {
         WebkitBackdropFilter: 'blur(12px)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-8 h-full flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-full flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3">
+        <div className="flex items-center gap-8 min-w-0">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Image
               src="/TPI New Logo - Transparant.png"
               alt="The Pitch Invaders Logo"
-              width={48}
-              height={48}
-              className="object-contain flex-shrink-0"
+              width={36}
+              height={36}
+              className="object-contain flex-shrink-0 sm:w-12 sm:h-12"
             />
             <div className="flex flex-col whitespace-nowrap">
               <span
-                className="font-extrabold text-lg tracking-tight leading-tight"
+                className="font-extrabold text-sm sm:text-lg tracking-tight leading-tight"
                 style={{
                   fontFamily: 'var(--font-anybody), sans-serif',
                   fontVariationSettings: '"wdth" 100',
@@ -54,7 +54,7 @@ export default async function Navbar() {
                 The Pitch Invaders
               </span>
               <span
-                className="text-[10px] tracking-[1px] uppercase"
+                className="hidden sm:block text-[10px] tracking-[1px] uppercase"
                 style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#c3c6d3' }}
               >
                 Your Sports League Simulator
@@ -92,14 +92,14 @@ export default async function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/auth/login"
-                className="text-sm transition"
+                className="hidden sm:inline text-sm transition"
                 style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#c3c6d3', letterSpacing: '0.7px' }}
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/signup"
-                className="text-sm font-bold px-5 py-2 rounded-xl transition"
+                className="text-sm font-bold px-3 sm:px-5 py-2 rounded-xl transition whitespace-nowrap"
                 style={{
                   fontFamily: 'var(--font-anybody), sans-serif',
                   fontVariationSettings: '"wdth" 100',
@@ -115,7 +115,7 @@ export default async function Navbar() {
             items={[
               { href: '/matches', label: 'Matches' },
               { href: '/leaderboard', label: 'Leaderboard' },
-              ...(user ? [{ href: '/leagues', label: 'Private Leagues' }, { href: '/predict', label: 'My Predictions' }] : []),
+              ...(user ? [{ href: '/leagues', label: 'Private Leagues' }, { href: '/predict', label: 'My Predictions' }] : [{ href: '/auth/login', label: 'Sign In' }]),
             ]}
             userId={user?.id}
             totalPoints={user ? totalPoints : undefined}

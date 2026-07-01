@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local claude settings (contains permission history, may include secrets)
+.claude/settings.local.json

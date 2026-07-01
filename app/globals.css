@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Force dark background everywhere */
+html,
+body {
+  background-color: #10131a !important;
+  color: #e1e2ec;
+}
+
+@theme {
+  --color-navy: #10131a;
+  --color-surface: #1d1f27;
+  --color-input: #272a32;
+  --color-card: #272a32;
+  --color-accent: #aec6ff;
+  --color-accent-dark: #002e6a;
+  --color-accent-mid: #00408f;
+  --color-accent-light: #8ab0ff;
+  --color-live: #ffb4a9;
+  --color-red: #c50005;
+  --color-text-primary: #e1e2ec;
+  --color-text-secondary: #c3c6d3;
+  --color-text-muted: #6b7280;
+  --color-border: rgba(255,255,255,0.1);
+  --color-footer: #0b0e15;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}

@@ -19,6 +19,13 @@ type ScoreUpdate = {
 
 const FINISHED_STATUSES = ['FT', 'AET', 'PEN']
 
+// Providers spell some team names differently than what's stored in the DB
+// (e.g. "Bosnia & Herzegovina" vs "Bosnia and Herzegovina") — normalize both
+// sides the same way before matching.
+function normalizeTeamName(name: string): string {
+  return name.replace(/&/g, 'and')
+}
+
 async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, updates: ScoreUpdate[]) {
   let updated = 0
   let scored = 0
@@ -34,8 +41,8 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
         away_penalty_score: u.awayPenaltyScore ?? null,
       })
       .eq('league_id', 77)
-      .ilike('home_team_name', u.homeTeam)
-      .ilike('away_team_name', u.awayTeam)
+      .ilike('home_team_name', normalizeTeamName(u.homeTeam))
+      .ilike('away_team_name', normalizeTeamName(u.awayTeam))
       .select('id')
     if (error) {
       errors.push(`${u.homeTeam} vs ${u.awayTeam}: ${error.message}`)

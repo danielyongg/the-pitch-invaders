@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import InviteCodeDisplay from '@/components/leagues/InviteCodeDisplay'
+import Avatar from '@/components/ui/Avatar'
 
 interface Props {
   params: Promise<{ leagueId: string }>
@@ -69,8 +70,8 @@ export default async function LeagueDetailPage({ params }: Props) {
                     {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : String(rank).padStart(2, '0')}
                   </span>
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <div className="hidden sm:flex w-8 h-8 rounded-full bg-[var(--color-input)] border border-[rgba(174,198,255,0.2)] items-center justify-center text-sm font-bold text-[var(--color-text-primary)] flex-shrink-0">
-                      {entry.username[0].toUpperCase()}
+                    <div className="hidden sm:block">
+                      <Avatar url={entry.avatar_url} username={entry.username} size={32} />
                     </div>
                     <span className={`text-sm font-medium truncate ${isMe ? 'text-[var(--color-accent-text)]' : 'text-[var(--color-text-primary)]'}`}>
                       {entry.username}

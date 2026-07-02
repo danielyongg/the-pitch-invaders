@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { COMPETITIONS } from '@/lib/competitions'
 import type { Profile } from '@/lib/supabase/types'
+import Avatar from '@/components/ui/Avatar'
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter(v => v !== value) : [...list, value]
@@ -25,6 +26,8 @@ interface Props {
 export default function EditProfileForm({ profile, teamsByLeague }: Props) {
   const [open, setOpen] = useState(false)
   const [username, setUsername] = useState(profile.username)
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url)
+  const [uploading, setUploading] = useState(false)
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(profile.favorite_team_names ?? [])
   const [favoriteLeagues, setFavoriteLeagues] = useState<number[]>(profile.favorite_league_ids ?? [])
   const [teamSearch, setTeamSearch] = useState('')
@@ -32,6 +35,34 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+
+    const ext = file.name.split('.').pop()
+    const path = `${profile.id}/avatar.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true })
+
+    if (uploadError) {
+      setError('Failed to upload image.')
+      setUploading(false)
+      return
+    }
+
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    // Cache-bust so the new image shows immediately even with the same filename
+    const url = `${data.publicUrl}?t=${Date.now()}`
+
+    await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
+    setAvatarUrl(url)
+    setUploading(false)
+    router.refresh()
+  }
 
   const filteredGroups = useMemo(() => {
     const q = teamSearch.trim().toLowerCase()
@@ -82,6 +113,14 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
           {error}
         </div>
       )}
+      <div className="flex items-center gap-4">
+        <Avatar url={avatarUrl} username={username} size={64} />
+        <label className="text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] transition border border-[rgba(174,198,255,0.3)] rounded-xl px-4 py-2 cursor-pointer">
+          {uploading ? 'Uploading...' : 'Change Photo'}
+          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarChange} disabled={uploading} className="hidden" />
+        </label>
+      </div>
+
       <div>
         <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">Username</label>
         <input

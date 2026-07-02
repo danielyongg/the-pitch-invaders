@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import type { LeaderboardEntry } from '@/lib/supabase/types'
+import Avatar from '@/components/ui/Avatar'
 
 export default async function LeaderboardPage() {
   const supabase = await createClient()
@@ -83,8 +84,8 @@ export default async function LeaderboardPage() {
                     {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : String(rank).padStart(2, '0')}
                   </span>
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <div className="hidden sm:flex w-10 h-10 rounded-full bg-[var(--color-input)] border border-[rgba(174,198,255,0.3)] items-center justify-center text-sm font-bold text-[var(--color-text-primary)] flex-shrink-0">
-                      {entry.username[0].toUpperCase()}
+                    <div className="hidden sm:block">
+                      <Avatar url={entry.avatar_url} username={entry.username} size={40} />
                     </div>
                     <div className="min-w-0">
                       <div className={`text-sm font-bold truncate ${isMe ? 'text-[var(--color-accent-text)]' : 'text-[var(--color-text-primary)]'}`}>
@@ -128,11 +129,8 @@ function PodiumCard({ entry, rank, rankColor, isChampion }: {
       </div>
 
       <div className="p-3 pt-6 sm:p-8 sm:pt-10 text-center">
-        <div
-          className="w-12 h-12 sm:w-24 sm:h-24 rounded-full mx-auto flex items-center justify-center text-lg sm:text-3xl font-bold text-[var(--color-text-primary)] mb-2 sm:mb-4"
-          style={{ border: `4px solid ${rankColor}40`, background: 'var(--color-input)' }}
-        >
-          {entry.username[0].toUpperCase()}
+        <div className="mx-auto mb-2 sm:mb-4 rounded-full" style={{ border: `4px solid ${rankColor}40`, width: 'fit-content' }}>
+          <Avatar url={entry.avatar_url} username={entry.username} size={isChampion ? 96 : 80} />
         </div>
 
         {isChampion && (

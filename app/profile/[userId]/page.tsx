@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import EditProfileForm from '@/components/profile/EditProfileForm'
+import Avatar from '@/components/ui/Avatar'
 
 interface Props {
   params: Promise<{ userId: string }>
@@ -46,9 +47,7 @@ export default async function ProfilePage({ params }: Props) {
     <div className="max-w-4xl mx-auto px-8 py-10">
       {/* Profile Header */}
       <div className="flex items-center gap-4 sm:gap-5 mb-6">
-        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-[#00408f] flex items-center justify-center flex-shrink-0 font-[var(--font-anybody)] font-bold text-xl sm:text-3xl text-[var(--color-accent-text)] [font-variation-settings:'wdth'_100]">
-          {profile.username[0].toUpperCase()}
-        </div>
+        <Avatar url={profile.avatar_url} username={profile.username} size={80} />
         <div className="min-w-0">
           <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[var(--color-text-primary)] break-words [font-variation-settings:'wdth'_100]">{profile.username}</h1>
           <p className="text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide text-sm mt-1">

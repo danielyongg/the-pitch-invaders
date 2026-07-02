@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/supabase/types'
+import Avatar from '@/components/ui/Avatar'
 
 export default function UserMenu({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState(false)
@@ -32,9 +33,7 @@ export default function UserMenu({ profile }: { profile: Profile }) {
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
       >
-        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-black font-bold text-sm">
-          {profile.username[0].toUpperCase()}
-        </div>
+        <Avatar url={profile.avatar_url} username={profile.username} size={32} />
         <span className="hidden sm:block">{profile.username}</span>
       </button>
 

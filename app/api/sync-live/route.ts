@@ -193,6 +193,45 @@ async function tryFlashscore4(apiKey: string): Promise<ScoreUpdate[] | null> {
   return updates.filter(u => u.homeTeam && u.awayTeam)
 }
 
+// free-football-api-data: fallback #3. Schema unconfirmed against a real
+// live match (endpoint returned an empty list when this was wired up) —
+// ponytail: try common field-name variants defensively; a match missing
+// recognizable team names is dropped rather than guessed at, so a schema
+// mismatch degrades to "no update" instead of corrupting scores. Revisit
+// field names once this has actually seen a live match.
+function mapFreeFootballStatus(m: any): string {
+  const s = (m.status ?? m.event_status ?? m.time?.status?.short ?? '').toString()
+  if (/^(FT|Finished|Ended)$/i.test(s)) return 'FT'
+  if (/^(AET|After Extra Time)$/i.test(s)) return 'AET'
+  if (/^(PEN|After Penalties)$/i.test(s)) return 'PEN'
+  if (/^(HT|Half.?Time)$/i.test(s)) return 'HT'
+  return s || 'LIVE'
+}
+
+async function tryFreeFootballApiData(apiKey: string): Promise<ScoreUpdate[] | null> {
+  const HOST = 'free-football-api-data.p.rapidapi.com'
+  const url = `https://${HOST}/football-current-live`
+  const res = await fetch(url, { headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': HOST }, next: { revalidate: 0 } })
+  if (!res.ok) return null
+  const json = await res.json()
+  const matches = json?.response?.live ?? json?.response ?? []
+  if (!Array.isArray(matches)) return null
+
+  const wcMatches = matches.filter((m: any) => {
+    const name = (m.tournament?.name ?? m.league?.name ?? m.competition?.name ?? '').toLowerCase()
+    return name.includes('world cup') && !name.includes('women') && !name.includes('u20') && !name.includes('u17')
+  })
+
+  const updates: ScoreUpdate[] = wcMatches.map((m: any) => ({
+    homeTeam: m.home?.name ?? m.homeTeam?.name ?? m.teams?.home?.name,
+    awayTeam: m.away?.name ?? m.awayTeam?.name ?? m.teams?.away?.name,
+    status: mapFreeFootballStatus(m),
+    homeScore: m.home?.score ?? m.homeScore ?? m.goals?.home ?? null,
+    awayScore: m.away?.score ?? m.awayScore ?? m.goals?.away ?? null,
+  }))
+  return updates.filter(u => u.homeTeam && u.awayTeam)
+}
+
 export async function GET() {
   const apiKey = process.env.API_FOOTBALL_KEY
   if (!apiKey) return NextResponse.json({ error: 'API_FOOTBALL_KEY not set' }, { status: 500 })
@@ -222,6 +261,7 @@ export async function GET() {
     ['365scores', try365Scores],
     ['livescore6', tryLivescore6],
     ['flashscore4', tryFlashscore4],
+    ['free-football-api-data', tryFreeFootballApiData],
   ]
 
   for (const [source, fn] of providers) {

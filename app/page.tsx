@@ -167,24 +167,19 @@ export default async function HomePage() {
                 description="Correctly guess the winner or a draw to stay ahead in the race."
                 iconBg="rgba(255,180,169,0.2)" emoji="⚽"
               />
-              {/* Stats card */}
+              {/* Community card */}
               <div className="glass-card rounded-3xl p-8 flex flex-col justify-between">
                 <div>
+                  <div className="w-12 h-12 rounded-xl mb-5 flex items-center justify-center text-2xl" style={{ background: 'rgba(174,198,255,0.2)' }}>
+                    🌍
+                  </div>
                   <div
-                    style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 32, color: '#aec6ff' }}
-                  >90K+</div>
-                  <div
-                    className="mt-1 text-sm uppercase tracking-widest"
-                    style={{ fontFamily: F.mono, color: '#c3c6d3' }}
-                  >Active Invaders</div>
+                    style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 32, color: '#e1e2ec' }}
+                  >Join the Squad</div>
                 </div>
                 <p className="text-sm mt-4" style={{ color: '#c3c6d3' }}>
-                  Join the fastest growing sports prediction platform globally.
+                  Compete with friends, climb the leaderboard, and turn every matchday into a battle of instincts.
                 </p>
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-yellow-400">★★★★★</span>
-                  <span className="text-xs" style={{ fontFamily: F.mono, color: '#c3c6d3' }}>4.9/5 (18,921)</span>
-                </div>
               </div>
             </div>
           </section>

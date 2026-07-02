@@ -54,7 +54,7 @@ export default async function Navbar() {
                 The Pitch Invaders
               </span>
               <span
-                className="hidden sm:block text-[10px] tracking-[1px] uppercase"
+                className="block text-[7px] xs:text-[8px] sm:text-[10px] tracking-[0.5px] sm:tracking-[1px] uppercase"
                 style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#c3c6d3' }}
               >
                 Your Sports League Simulator

@@ -59,8 +59,10 @@ function map365StatusText(text: string): string {
   if (!text) return 'NS'
   if (text === 'Scheduled' || text.startsWith('Sched')) return 'NS'
   if (text === 'Half-Time' || text === 'HT') return 'HT'
+  if (text.includes('After Penalties') || text.includes('Penalties Ended')) return 'PEN'
   if (text.includes('Penalties')) return 'PEN'
-  if (text === 'Ended' || text === 'FT' || text.includes('Extra Time Ended')) return 'FT'
+  if (text === 'After ET' || text.includes('Extra Time Ended')) return 'AET'
+  if (text === 'Ended' || text === 'FT') return 'FT'
   return text // live minute / period text, store as-is for display
 }
 

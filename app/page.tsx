@@ -96,12 +96,11 @@ export default async function HomePage() {
 
             {/* Headline */}
             <h1
-              className="mb-8 leading-tight"
+              className="mb-8 leading-tight text-[40px] sm:text-[56px] lg:text-[72px]"
               style={{
                 fontFamily: F.display,
                 fontVariationSettings: '"wdth" 100',
                 fontWeight: 800,
-                fontSize: 72,
                 color: '#e1e2ec',
                 letterSpacing: '-1.44px',
               }}
@@ -110,18 +109,17 @@ export default async function HomePage() {
               <span style={{ color: '#aec6ff', fontWeight: 400 }}>Predict</span> the Glory.
             </h1>
 
-            <p className="text-lg leading-relaxed mb-10 max-w-xl" style={{ color: '#c3c6d3' }}>
+            <p className="text-base sm:text-lg leading-relaxed mb-10 max-w-xl" style={{ color: '#c3c6d3' }}>
               Step into the arena where precision meets passion. Join the elite community of football predictors and turn your insights into tangible rewards.
             </p>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               <Link
                 href="/auth/signup"
-                className="px-10 py-4 rounded-xl transition font-bold"
+                className="px-6 sm:px-10 py-3 sm:py-4 rounded-xl transition font-bold text-base sm:text-2xl"
                 style={{
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
-                  fontSize: 24,
                   background: '#aec6ff',
                   color: '#001a42',
                 }}
@@ -130,11 +128,10 @@ export default async function HomePage() {
               </Link>
               <Link
                 href="/matches"
-                className="px-10 py-4 rounded-xl transition font-bold"
+                className="px-6 sm:px-10 py-3 sm:py-4 rounded-xl transition font-bold text-base sm:text-2xl"
                 style={{
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
-                  fontSize: 24,
                   background: 'rgba(255,255,255,0.05)',
                   border: '1px solid rgba(174,198,255,0.3)',
                   color: '#e1e2ec',
@@ -195,35 +192,33 @@ export default async function HomePage() {
           {/* CTA */}
           <section className="py-20">
             <div
-              className="rounded-[48px] px-16 py-24 text-center relative overflow-hidden"
+              className="rounded-[48px] px-6 sm:px-16 py-14 sm:py-24 text-center relative overflow-hidden"
               style={{
                 background: 'linear-gradient(25deg, rgba(174,198,255,0.1) 0%, rgba(255,180,169,0.05) 100%)',
                 border: '1px solid rgba(255,255,255,0.1)',
               }}
             >
               <h2
-                className="mb-6 leading-tight"
+                className="mb-6 leading-tight text-[36px] sm:text-[56px] lg:text-[72px]"
                 style={{
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
                   fontWeight: 800,
-                  fontSize: 72,
                   color: '#e1e2ec',
                   letterSpacing: '-1.44px',
                 }}
               >
                 Ready to join<br />the invasion?
               </h2>
-              <p className="text-lg mb-10 max-w-2xl mx-auto" style={{ color: '#c3c6d3' }}>
+              <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto" style={{ color: '#c3c6d3' }}>
                 Don&apos;t just watch the game. Own the outcome. Register today and get your first prediction streak bonus.
               </p>
               <Link
                 href="/auth/signup"
-                className="inline-block px-12 py-5 rounded-2xl font-bold transition"
+                className="inline-block px-8 sm:px-12 py-4 sm:py-5 rounded-2xl font-bold transition text-base sm:text-2xl"
                 style={{
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
-                  fontSize: 24,
                   background: '#aec6ff',
                   color: '#001a42',
                 }}

@@ -54,11 +54,19 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
       return
     }
 
-    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-    // Cache-bust so the new image shows immediately even with the same filename
-    const url = `${data.publicUrl}?t=${Date.now()}`
+    const res = await fetch('/api/profile/avatar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
 
-    await supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
+    if (!res.ok) {
+      setError('Failed to save photo.')
+      setUploading(false)
+      return
+    }
+
+    const { url } = await res.json()
     setAvatarUrl(url)
     setUploading(false)
     router.refresh()

@@ -38,7 +38,7 @@ export default async function LeagueDetailPage({ params }: Props) {
       </div>
 
       <div className="glass-card rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[var(--color-border)] bg-[rgba(25,27,35,0.5)]">
+        <div className="px-6 py-4 border-b border-[var(--color-border)] bg-[rgba(174,198,255,0.12)]">
           <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">League Standings</h2>
         </div>
 
@@ -48,7 +48,7 @@ export default async function LeagueDetailPage({ params }: Props) {
           </div>
         ) : (
           <div>
-            <div className="grid grid-cols-[32px_1fr_60px] sm:grid-cols-[80px_1fr_100px_80px_80px] gap-2 sm:gap-4 px-4 sm:px-6 py-3 text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] border-b border-[var(--color-border)] bg-[rgba(25,27,35,0.3)]">
+            <div className="grid grid-cols-[32px_1fr_60px] sm:grid-cols-[80px_1fr_100px_80px_80px] gap-2 sm:gap-4 px-4 sm:px-6 py-3 text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] border-b border-[var(--color-border)] bg-[rgba(174,198,255,0.06)]">
               <span>#</span>
               <span>Player</span>
               <span className="text-center">Points</span>

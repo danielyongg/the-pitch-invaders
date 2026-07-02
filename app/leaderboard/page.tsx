@@ -56,12 +56,12 @@ export default async function LeaderboardPage() {
 
           {/* Full table */}
           <div className="glass-card rounded-2xl overflow-hidden">
-            <div className="px-8 py-5 border-b border-[var(--color-border)] bg-[rgba(25,27,35,0.5)]">
+            <div className="px-8 py-5 border-b border-[var(--color-border)] bg-[rgba(174,198,255,0.12)]">
               <h2 className="font-[var(--font-anybody)] font-semibold text-[24px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">All Ranks</h2>
             </div>
 
             {/* Table header */}
-            <div className="grid grid-cols-[32px_1fr_60px] sm:grid-cols-[80px_1fr_100px_100px_80px] gap-2 sm:gap-4 px-4 sm:px-8 py-4 text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] border-b border-[var(--color-border)] bg-[rgba(25,27,35,0.3)]">
+            <div className="grid grid-cols-[32px_1fr_60px] sm:grid-cols-[80px_1fr_100px_100px_80px] gap-2 sm:gap-4 px-4 sm:px-8 py-4 text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] border-b border-[var(--color-border)] bg-[rgba(174,198,255,0.06)]">
               <span>Rank</span>
               <span>Predictor</span>
               <span className="text-center">Points</span>

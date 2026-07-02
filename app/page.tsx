@@ -158,12 +158,12 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ScoreCard
-                points="3" pointsColor="#aec6ff" title="Exact Score"
+                points="3" pointsColor="var(--color-accent-text)" title="Exact Score"
                 description="Predict the final scoreline perfectly to claim the maximum reward."
                 iconBg="rgba(174,198,255,0.2)" emoji="🎯"
               />
               <ScoreCard
-                points="1" pointsColor="#ffb4a9" title="Match Result"
+                points="1" pointsColor="var(--color-live-text)" title="Match Result"
                 description="Correctly guess the winner or a draw to stay ahead in the race."
                 iconBg="rgba(255,180,169,0.2)" emoji="⚽"
               />

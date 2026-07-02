@@ -19,6 +19,7 @@ body {
   --color-accent-mid: #00408f;
   --color-accent-light: #8ab0ff;
   --color-live: #ffb4a9;
+  --color-live-text: #ffb4a9;
   --color-red: #c50005;
   --color-text-primary: #e1e2ec;
   --color-text-secondary: #c3c6d3;
@@ -46,6 +47,7 @@ body {
   --color-text-muted: #6b7080;
   --color-accent-text: #0b3fa0;
   --color-accent-hover: #1a56db;
+  --color-live-text: #b3261e;
   --color-border: rgba(16,19,26,0.1);
   --color-footer: #eceef3;
   --glass-03: rgba(16,19,26,0.02);

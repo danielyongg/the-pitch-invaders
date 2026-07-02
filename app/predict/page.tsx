@@ -19,6 +19,12 @@ export default async function PredictPage() {
   const exactScores = predictions?.filter(p => p.points_awarded === 3).length ?? 0
   const correctResults = predictions?.filter(p => (p.points_awarded ?? 0) >= 1).length ?? 0
 
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const pointsThisWeek = predictions
+    ?.filter(p => new Date(p.created_at) >= weekAgo)
+    .reduce((sum, p) => sum + (p.points_awarded ?? 0), 0) ?? 0
+
   const upcoming = predictions?.filter(p => {
     const m = p.matches as any
     return m && new Date(m.kickoff_time) > new Date()
@@ -38,7 +44,7 @@ export default async function PredictPage() {
       {/* Stats bento */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {[
-          { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[#aec6ff]', sub: '+120 this week' },
+          { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[#aec6ff]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week` },
           { label: 'EXACT SCORES', value: exactScores, color: 'text-[#e1e2ec]', sub: 'Perfect predictions' },
           { label: 'CORRECT RESULTS', value: correctResults, color: 'text-[#e1e2ec]', sub: 'Right outcome' },
         ].map(s => (

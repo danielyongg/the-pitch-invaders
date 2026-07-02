@@ -43,11 +43,11 @@ export default function SignupPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10131a] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] px-4">
         <div className="text-center max-w-sm">
           <div className="text-5xl mb-4">📧</div>
-          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[#e1e2ec] mb-3 [font-variation-settings:'wdth'_100]">Check your email!</h2>
-          <p className="text-[#c3c6d3]">We sent a confirmation link to <span className="text-[#e1e2ec]">{email}</span>. Click it to activate your account.</p>
+          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-3 [font-variation-settings:'wdth'_100]">Check your email!</h2>
+          <p className="text-[var(--color-text-secondary)]">We sent a confirmation link to <span className="text-[var(--color-text-primary)]">{email}</span>. Click it to activate your account.</p>
           <Link href="/auth/login" className="mt-6 inline-block text-[#aec6ff] hover:text-[#c8d8ff] font-[var(--font-jetbrains)] tracking-wide text-sm">
             Back to Sign In →
           </Link>
@@ -57,11 +57,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#10131a] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="font-[var(--font-anybody)] font-extrabold text-3xl text-[#aec6ff] tracking-tight [font-variation-settings:'wdth'_100]">The Pitch Invaders</h1>
-          <p className="text-[#c3c6d3] mt-2 font-[var(--font-jetbrains)] tracking-wide text-sm">Create your account</p>
+          <p className="text-[var(--color-text-secondary)] mt-2 font-[var(--font-jetbrains)] tracking-wide text-sm">Create your account</p>
         </div>
 
         <div className="glass-card rounded-2xl p-8 shadow-xl">
@@ -79,9 +79,9 @@ export default function SignupPage() {
           </button>
 
           <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)]" />
-            <span className="text-[#6b7280] text-sm font-[var(--font-jetbrains)]">or</span>
-            <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)]" />
+            <div className="flex-1 h-px bg-[var(--color-border)]" />
+            <span className="text-[var(--color-text-muted)] text-sm font-[var(--font-jetbrains)]">or</span>
+            <div className="flex-1 h-px bg-[var(--color-border)]" />
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
@@ -96,11 +96,11 @@ export default function SignupPage() {
               { label: 'Password', type: 'password', value: password, onChange: setPassword, placeholder: '••••••••', min: 6 },
             ].map(f => (
               <div key={f.label}>
-                <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3] mb-2">{f.label}</label>
+                <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">{f.label}</label>
                 <input
                   type={f.type} value={f.value} onChange={e => f.onChange(e.target.value)} required
                   minLength={f.min} maxLength={f.max} placeholder={f.placeholder}
-                  className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[#6b7280]"
+                  className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[var(--color-text-muted)]"
                 />
               </div>
             ))}
@@ -112,7 +112,7 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <p className="text-center text-[#6b7280] text-sm mt-6 font-[var(--font-jetbrains)]">
+          <p className="text-center text-[var(--color-text-muted)] text-sm mt-6 font-[var(--font-jetbrains)]">
             Already have an account?{' '}
             <Link href="/auth/login" className="text-[#aec6ff] hover:text-[#c8d8ff]">Sign in</Link>
           </p>

@@ -71,8 +71,8 @@ function TeamBadge({ src, name }: { src: string | null; name: string }) {
     <div className="w-16 h-16 flex items-center justify-center">
       {src && !failed
         ? <img src={src} alt={name} className="w-full h-full object-contain" onError={() => setFailed(true)} />
-        : <div className="w-full h-full rounded-full bg-[#32353d] flex items-center justify-center">
-            <span className="text-sm font-bold text-[#c3c6d3]">{initials}</span>
+        : <div className="w-full h-full rounded-full bg-[var(--color-border-strong)] flex items-center justify-center">
+            <span className="text-sm font-bold text-[var(--color-text-secondary)]">{initials}</span>
           </div>
       }
     </div>
@@ -82,7 +82,7 @@ function TeamBadge({ src, name }: { src: string | null; name: string }) {
 const POINTS_LABEL: Record<number, { label: string; color: string }> = {
   3: { label: '+3', color: 'text-[#aec6ff]' },
   1: { label: '+1', color: 'text-[#ffb4a9]' },
-  0: { label: '+0', color: 'text-[#6b7280]' },
+  0: { label: '+0', color: 'text-[var(--color-text-muted)]' },
 }
 
 interface Props {
@@ -105,7 +105,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
   return (
     <div className="glass-card rounded-2xl overflow-hidden hover:border-[rgba(174,198,255,0.2)] transition">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.1)]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-2 flex-wrap">
           <span
             className="text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full"
@@ -117,7 +117,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
             {LEAGUE_NAMES[match.league_id] ?? 'Match'}
           </span>
           {match.league_id === 77 && match.round && (
-            <span className="text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full bg-[#272a32] text-[#c3c6d3] border border-[rgba(255,255,255,0.08)]">
+            <span className="text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full bg-[var(--color-input)] text-[var(--color-text-secondary)] border border-[var(--glass-08)]">
               {ROUND_LABELS[match.round] ?? match.round}
             </span>
           )}
@@ -131,8 +131,8 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           )}
           {isFinished ? (
             <div className="flex flex-col items-end">
-              <span className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-wide">Finished</span>
-              <span className="text-xs text-[#6b7280] font-[var(--font-jetbrains)]">
+              <span className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">Finished</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">
                 {kickoffTime.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>
             </div>
@@ -150,7 +150,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {/* Home */}
           <div className="flex-1 flex flex-col items-center gap-3">
             <TeamBadge src={getTeamImageUrl(match, true)} name={match.home_team_name} />
-            <span className="text-sm font-[var(--font-anybody)] font-semibold text-[#e1e2ec] text-center leading-tight min-h-[2.5rem] flex items-center [font-variation-settings:'wdth'_100]">
+            <span className="text-sm font-[var(--font-anybody)] font-semibold text-[var(--color-text-primary)] text-center leading-tight min-h-[2.5rem] flex items-center [font-variation-settings:'wdth'_100]">
               {match.home_team_name}
             </span>
           </div>
@@ -159,11 +159,11 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           <div className="flex-shrink-0 text-center px-2 pt-4">
             {(isFinished || isLive) && match.home_score != null ? (
               <div>
-                <div className="text-3xl font-[var(--font-anybody)] font-extrabold text-[#e1e2ec] tabular-nums [font-variation-settings:'wdth'_100]">
+                <div className="text-3xl font-[var(--font-anybody)] font-extrabold text-[var(--color-text-primary)] tabular-nums [font-variation-settings:'wdth'_100]">
                   {match.home_score} – {match.away_score}
                 </div>
                 {match.status === 'PEN' && match.home_penalty_score != null && (
-                  <div className="text-xs text-[#6b7280] font-[var(--font-jetbrains)] tracking-wide mt-1">
+                  <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] tracking-wide mt-1">
                     ({match.home_penalty_score} – {match.away_penalty_score} pens)
                   </div>
                 )}
@@ -171,9 +171,9 @@ export default function MatchCard({ match, prediction, userId }: Props) {
             ) : (
               <div className="flex flex-col items-center gap-1">
                 <span className="font-[var(--font-anybody)] font-bold text-2xl text-[rgba(195,198,211,0.5)] [font-variation-settings:'wdth'_100]">VS</span>
-                <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-wide">
+                <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
                   {kickoffTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                  <div className="text-[#6b7280]">
+                  <div className="text-[var(--color-text-muted)]">
                     {kickoffTime.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {/* Away */}
           <div className="flex-1 flex flex-col items-center gap-3">
             <TeamBadge src={getTeamImageUrl(match, false)} name={match.away_team_name} />
-            <span className="text-sm font-[var(--font-anybody)] font-semibold text-[#e1e2ec] text-center leading-tight min-h-[2.5rem] flex items-center [font-variation-settings:'wdth'_100]">
+            <span className="text-sm font-[var(--font-anybody)] font-semibold text-[var(--color-text-primary)] text-center leading-tight min-h-[2.5rem] flex items-center [font-variation-settings:'wdth'_100]">
               {match.away_team_name}
             </span>
           </div>
@@ -192,29 +192,29 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       </div>
 
       {/* Prediction Section */}
-      <div className="px-4 pb-4 pt-2 border-t border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)]">
+      <div className="px-4 pb-4 pt-2 border-t border-[var(--color-border)] bg-[var(--glass-03)]">
         {canPredict ? (
           <PredictionInput matchId={match.id} userId={userId} existing={prediction} />
         ) : prediction ? (
           <div className="flex items-center justify-between">
-            <div className="text-sm text-[#c3c6d3]">
+            <div className="text-sm text-[var(--color-text-secondary)]">
               Your prediction:{' '}
-              <span className="font-bold text-[#e1e2ec] font-[var(--font-anybody)] [font-variation-settings:'wdth'_100]">
+              <span className="font-bold text-[var(--color-text-primary)] font-[var(--font-anybody)] [font-variation-settings:'wdth'_100]">
                 {prediction.predicted_home} – {prediction.predicted_away}
               </span>
             </div>
             {prediction.points_awarded != null && (
-              <span className={`text-sm font-bold font-[var(--font-anybody)] [font-variation-settings:'wdth'_100] ${POINTS_LABEL[prediction.points_awarded]?.color ?? 'text-[#c3c6d3]'}`}>
+              <span className={`text-sm font-bold font-[var(--font-anybody)] [font-variation-settings:'wdth'_100] ${POINTS_LABEL[prediction.points_awarded]?.color ?? 'text-[var(--color-text-secondary)]'}`}>
                 {POINTS_LABEL[prediction.points_awarded]?.label}
               </span>
             )}
           </div>
         ) : userId ? (
-          <p className="text-xs text-center text-[#6b7280] font-[var(--font-jetbrains)] tracking-wide py-1">
+          <p className="text-xs text-center text-[var(--color-text-muted)] font-[var(--font-jetbrains)] tracking-wide py-1">
             {locked ? 'Predictions closed before kickoff' : 'No prediction yet'}
           </p>
         ) : (
-          <p className="text-xs text-center text-[#6b7280] py-1">
+          <p className="text-xs text-center text-[var(--color-text-muted)] py-1">
             <a href="/auth/login" className="text-[#aec6ff] hover:text-[#c8d8ff] font-[var(--font-jetbrains)] tracking-wide">Sign in</a>
             {' '}to make a prediction
           </p>

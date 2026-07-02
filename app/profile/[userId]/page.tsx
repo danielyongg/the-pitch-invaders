@@ -50,8 +50,8 @@ export default async function ProfilePage({ params }: Props) {
           {profile.username[0].toUpperCase()}
         </div>
         <div className="min-w-0">
-          <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[#e1e2ec] break-words [font-variation-settings:'wdth'_100]">{profile.username}</h1>
-          <p className="text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-wide text-sm mt-1">
+          <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[var(--color-text-primary)] break-words [font-variation-settings:'wdth'_100]">{profile.username}</h1>
+          <p className="text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide text-sm mt-1">
             Joined {new Date(profile.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long' })}
           </p>
         </div>
@@ -67,12 +67,12 @@ export default async function ProfilePage({ params }: Props) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         {[
           { label: 'TOTAL POINTS', value: stats?.total_points ?? 0, color: 'text-[#aec6ff]' },
-          { label: 'EXACT SCORES', value: stats?.exact_scores ?? 0, color: 'text-[#e1e2ec]' },
-          { label: 'CORRECT RESULTS', value: stats?.correct_results ?? 0, color: 'text-[#e1e2ec]' },
-          { label: 'PREDICTIONS', value: stats?.total_preds ?? 0, color: 'text-[#c3c6d3]' },
+          { label: 'EXACT SCORES', value: stats?.exact_scores ?? 0, color: 'text-[var(--color-text-primary)]' },
+          { label: 'CORRECT RESULTS', value: stats?.correct_results ?? 0, color: 'text-[var(--color-text-primary)]' },
+          { label: 'PREDICTIONS', value: stats?.total_preds ?? 0, color: 'text-[var(--color-text-secondary)]' },
         ].map(s => (
           <div key={s.label} className="glass-card rounded-2xl p-5 text-center">
-            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[#c3c6d3] mb-2">{s.label}</div>
+            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">{s.label}</div>
             <div className={`font-[var(--font-anybody)] font-extrabold text-[40px] ${s.color} [font-variation-settings:'wdth'_100]`}>{s.value}</div>
           </div>
         ))}
@@ -81,23 +81,23 @@ export default async function ProfilePage({ params }: Props) {
       {/* Recent predictions */}
       {recentPreds && recentPreds.length > 0 && (
         <div>
-          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[#e1e2ec] mb-5 [font-variation-settings:'wdth'_100]">Recent Predictions</h2>
+          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-5 [font-variation-settings:'wdth'_100]">Recent Predictions</h2>
           <div className="space-y-2">
             {recentPreds.map(p => {
               const match = p.matches as any
               const pts = p.points_awarded
               return (
                 <div key={p.id} className="glass-card rounded-xl px-5 py-4 flex items-center gap-4">
-                  <div className="flex-1 text-sm text-[#e1e2ec]">{match?.home_team_name} vs {match?.away_team_name}</div>
-                  <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-wide">
-                    Prediction: <span className="text-[#e1e2ec] font-bold">{p.predicted_home}–{p.predicted_away}</span>
+                  <div className="flex-1 text-sm text-[var(--color-text-primary)]">{match?.home_team_name} vs {match?.away_team_name}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
+                    Prediction: <span className="text-[var(--color-text-primary)] font-bold">{p.predicted_home}–{p.predicted_away}</span>
                   </div>
                   {match?.home_score != null && (
-                    <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-wide">
-                      Result: <span className="text-[#e1e2ec] font-bold">{match.home_score}–{match.away_score}</span>
+                    <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
+                      Result: <span className="text-[var(--color-text-primary)] font-bold">{match.home_score}–{match.away_score}</span>
                     </div>
                   )}
-                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[#aec6ff]' : pts === 1 ? 'text-[#ffb4a9]' : 'text-[#6b7280]'}`}>
+                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[#aec6ff]' : pts === 1 ? 'text-[#ffb4a9]' : 'text-[var(--color-text-muted)]'}`}>
                     +{pts}
                   </span>
                 </div>

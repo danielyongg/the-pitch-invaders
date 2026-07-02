@@ -14,7 +14,7 @@ const PILL = (active: boolean) =>
   `px-3 py-1.5 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide transition cursor-pointer ${
     active
       ? 'bg-[#aec6ff] text-[#002e6a]'
-      : 'bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#c3c6d3] hover:text-[#e1e2ec] hover:bg-[#32353d]'
+      : 'bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]'
   }`
 
 interface Props {
@@ -83,15 +83,15 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
         </div>
       )}
       <div>
-        <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3] mb-2">Username</label>
+        <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">Username</label>
         <input
           type="text" value={username} onChange={e => setUsername(e.target.value)} required maxLength={30}
-          className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent"
+          className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3] mb-2">Favorite Competitions</label>
+        <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">Favorite Competitions</label>
         <div className="flex flex-wrap gap-2">
           {COMPETITIONS.map(c => (
             <button
@@ -107,7 +107,7 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3]">Favorite Teams</label>
+          <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)]">Favorite Teams</label>
           {favoriteTeams.length > 0 && (
             <span className="text-xs text-[#aec6ff] font-[var(--font-jetbrains)]">{favoriteTeams.length} selected</span>
           )}
@@ -115,15 +115,15 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
         <input
           type="text" value={teamSearch} onChange={e => setTeamSearch(e.target.value)}
           placeholder="Search teams..."
-          className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] rounded-xl px-4 py-2.5 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent"
+          className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent"
         />
         <div className="max-h-64 overflow-y-auto space-y-4 pr-1">
           {filteredGroups.length === 0 && (
-            <p className="text-sm text-[#6b7280]">No teams match your search.</p>
+            <p className="text-sm text-[var(--color-text-muted)]">No teams match your search.</p>
           )}
           {filteredGroups.map(g => (
             <div key={g.leagueId}>
-              <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[#6b7280] mb-2">{g.name}</div>
+              <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-muted)] mb-2">{g.name}</div>
               <div className="flex flex-wrap gap-2">
                 {g.teams.map(name => (
                   <button
@@ -149,7 +149,7 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
         </button>
         <button
           type="button" onClick={() => setOpen(false)}
-          className="text-[#c3c6d3] hover:text-[#e1e2ec] py-2 px-5 transition"
+          className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-2 px-5 transition"
         >
           Cancel
         </button>

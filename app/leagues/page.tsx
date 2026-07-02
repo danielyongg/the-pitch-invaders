@@ -56,19 +56,19 @@ export default async function LeaguesPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
         <div>
           <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[#aec6ff] [font-variation-settings:'wdth'_100]">Private Leagues</h1>
-          <p className="text-[#c3c6d3] mt-1">Manage your squads, track rankings, and invite the elite.</p>
+          <p className="text-[var(--color-text-secondary)] mt-1">Manage your squads, track rankings, and invite the elite.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative">
             <input
               type="text"
               placeholder="Invite Code"
-              className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] placeholder-[#6b7280] rounded-xl px-5 py-3 pr-12 font-[var(--font-jetbrains)] text-sm tracking-wide focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent"
+              className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] rounded-xl px-5 py-3 pr-12 font-[var(--font-jetbrains)] text-sm tracking-wide focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent"
             />
           </div>
           <Link
             href="/leagues/join"
-            className="text-center bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] text-sm font-[var(--font-jetbrains)] tracking-wide px-5 py-3 rounded-xl transition hover:bg-[#32353d]"
+            className="text-center bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-[var(--font-jetbrains)] tracking-wide px-5 py-3 rounded-xl transition hover:bg-[var(--color-border-strong)]"
           >
             Join League
           </Link>
@@ -85,7 +85,7 @@ export default async function LeaguesPage() {
         {/* League list — 2 cols */}
         <div className="lg:col-span-2">
           <div className="flex items-center gap-3 mb-5">
-            <h2 className="font-[var(--font-anybody)] font-semibold text-2xl text-[#e1e2ec] [font-variation-settings:'wdth'_100]">My Leagues</h2>
+            <h2 className="font-[var(--font-anybody)] font-semibold text-2xl text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">My Leagues</h2>
             {leagues.length > 0 && (
               <span className="bg-[rgba(174,198,255,0.1)] text-[#aec6ff] text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full">
                 {leagues.length} ACTIVE
@@ -94,15 +94,15 @@ export default async function LeaguesPage() {
           </div>
 
           {!leagues.length ? (
-            <div className="text-center py-20 text-[#c3c6d3]">
+            <div className="text-center py-20 text-[var(--color-text-secondary)]">
               <div className="text-5xl mb-4">🏟️</div>
-              <p className="text-[#e1e2ec] font-medium mb-2">No leagues yet</p>
+              <p className="text-[var(--color-text-primary)] font-medium mb-2">No leagues yet</p>
               <p className="text-sm mb-8">Create a league or join one with an invite code</p>
               <div className="flex gap-3 justify-center">
                 <Link href="/leagues/create" className="bg-[#aec6ff] hover:bg-[#c8d8ff] text-[#002e6a] font-bold font-[var(--font-anybody)] [font-variation-settings:'wdth'_100] px-6 py-3 rounded-xl transition">
                   Create a league
                 </Link>
-                <Link href="/leagues/join" className="bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] px-6 py-3 rounded-xl transition hover:bg-[#32353d]">
+                <Link href="/leagues/join" className="bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-6 py-3 rounded-xl transition hover:bg-[var(--color-border-strong)]">
                   Join with code
                 </Link>
               </div>
@@ -117,25 +117,25 @@ export default async function LeaguesPage() {
                   href={`/leagues/${league.id}`}
                   className="glass-card hover:border-[rgba(174,198,255,0.2)] rounded-2xl p-4 sm:p-6 flex items-center gap-3 sm:gap-6 transition group block"
                 >
-                  <div className="hidden sm:flex w-16 h-16 rounded-xl bg-[#32353d] items-center justify-center text-2xl flex-shrink-0">
+                  <div className="hidden sm:flex w-16 h-16 rounded-xl bg-[var(--color-border-strong)] items-center justify-center text-2xl flex-shrink-0">
                     🏆
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-[var(--font-anybody)] font-semibold text-lg sm:text-2xl text-[#e1e2ec] group-hover:text-[#aec6ff] transition truncate [font-variation-settings:'wdth'_100]">
+                    <h3 className="font-[var(--font-anybody)] font-semibold text-lg sm:text-2xl text-[var(--color-text-primary)] group-hover:text-[#aec6ff] transition truncate [font-variation-settings:'wdth'_100]">
                       {league.name}
                     </h3>
-                    <p className="text-sm text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-wide mt-1">
-                      Invite code: <span className="font-mono text-[#e1e2ec] tracking-widest">{league.invite_code}</span>
+                    <p className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide mt-1">
+                      Invite code: <span className="font-mono text-[var(--color-text-primary)] tracking-widest">{league.invite_code}</span>
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)] tracking-widest uppercase">Rank</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-widest uppercase">Rank</div>
                     <div className="font-[var(--font-anybody)] font-bold text-2xl sm:text-[40px] text-[#aec6ff] [font-variation-settings:'wdth'_100]">
                       {rank ? `#${String(rank).padStart(2, '0')}` : '—'}
                     </div>
                   </div>
-                  <div className="hidden sm:block border-l border-[rgba(255,255,255,0.05)] pl-6 flex-shrink-0">
-                    <span className="text-[#c3c6d3] group-hover:text-[#aec6ff] transition">›</span>
+                  <div className="hidden sm:block border-l border-[var(--glass-05)] pl-6 flex-shrink-0">
+                    <span className="text-[var(--color-text-secondary)] group-hover:text-[#aec6ff] transition">›</span>
                   </div>
                 </Link>
                 )
@@ -149,18 +149,18 @@ export default async function LeaguesPage() {
           {/* Stats */}
           <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
             <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[#aec6ff] mb-4">League Stats</div>
-            <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)]">Global Percentile</div>
-            <div className="font-[var(--font-anybody)] font-extrabold text-[48px] text-[#e1e2ec] [font-variation-settings:'wdth'_100]">
+            <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)]">Global Percentile</div>
+            <div className="font-[var(--font-anybody)] font-extrabold text-[48px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">
               {globalPercentile ? `Top ${100 - globalPercentile + 1}%` : '—'}
             </div>
             <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="bg-[rgba(255,255,255,0.05)] rounded-xl p-4">
-                <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)]">Trophies</div>
-                <div className="font-[var(--font-anybody)] font-semibold text-2xl text-[#e1e2ec] [font-variation-settings:'wdth'_100]">{trophies}</div>
+              <div className="bg-[var(--glass-05)] rounded-xl p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)]">Trophies</div>
+                <div className="font-[var(--font-anybody)] font-semibold text-2xl text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">{trophies}</div>
               </div>
-              <div className="bg-[rgba(255,255,255,0.05)] rounded-xl p-4">
-                <div className="text-xs text-[#c3c6d3] font-[var(--font-jetbrains)]">Avg Rank</div>
-                <div className="font-[var(--font-anybody)] font-semibold text-2xl text-[#e1e2ec] [font-variation-settings:'wdth'_100]">
+              <div className="bg-[var(--glass-05)] rounded-xl p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)]">Avg Rank</div>
+                <div className="font-[var(--font-anybody)] font-semibold text-2xl text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">
                   {avgRank ? `#${String(avgRank).padStart(2, '0')}` : '—'}
                 </div>
               </div>

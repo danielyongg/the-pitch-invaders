@@ -49,9 +49,9 @@ function LoginForm() {
       </button>
 
       <div className="flex items-center gap-4 mb-6">
-        <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)]" />
-        <span className="text-[#6b7280] text-sm font-[var(--font-jetbrains)]">or</span>
-        <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)]" />
+        <div className="flex-1 h-px bg-[var(--color-border)]" />
+        <span className="text-[var(--color-text-muted)] text-sm font-[var(--font-jetbrains)]">or</span>
+        <div className="flex-1 h-px bg-[var(--color-border)]" />
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
@@ -61,19 +61,19 @@ function LoginForm() {
           </div>
         )}
         <div>
-          <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3] mb-2">Email</label>
+          <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">Email</label>
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)} required
             placeholder="you@example.com"
-            className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[#6b7280]"
+            className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[var(--color-text-muted)]"
           />
         </div>
         <div>
-          <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3] mb-2">Password</label>
+          <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">Password</label>
           <input
             type="password" value={password} onChange={e => setPassword(e.target.value)} required
             placeholder="••••••••"
-            className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[#6b7280]"
+            className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[var(--color-text-muted)]"
           />
         </div>
         <button
@@ -84,7 +84,7 @@ function LoginForm() {
         </button>
       </form>
 
-      <p className="text-center text-[#6b7280] text-sm mt-6 font-[var(--font-jetbrains)]">
+      <p className="text-center text-[var(--color-text-muted)] text-sm mt-6 font-[var(--font-jetbrains)]">
         Don&apos;t have an account?{' '}
         <Link href="/auth/signup" className="text-[#aec6ff] hover:text-[#c8d8ff]">
           Sign up for free
@@ -96,11 +96,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#10131a] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="font-[var(--font-anybody)] font-extrabold text-3xl text-[#aec6ff] tracking-tight [font-variation-settings:'wdth'_100]">The Pitch Invaders</h1>
-          <p className="text-[#c3c6d3] mt-2 font-[var(--font-jetbrains)] tracking-wide text-sm">Sign in to your account</p>
+          <p className="text-[var(--color-text-secondary)] mt-2 font-[var(--font-jetbrains)] tracking-wide text-sm">Sign in to your account</p>
         </div>
         <Suspense fallback={<div className="glass-card rounded-2xl p-8 animate-pulse h-96" />}>
           <LoginForm />

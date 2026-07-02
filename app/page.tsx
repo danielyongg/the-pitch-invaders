@@ -101,7 +101,7 @@ export default async function HomePage() {
                 fontFamily: F.display,
                 fontVariationSettings: '"wdth" 100',
                 fontWeight: 800,
-                color: '#e1e2ec',
+                color: 'var(--color-text-primary)',
                 letterSpacing: '-1.44px',
               }}
             >
@@ -109,7 +109,7 @@ export default async function HomePage() {
               <span style={{ color: '#aec6ff', fontWeight: 400 }}>Predict</span> the Glory.
             </h1>
 
-            <p className="text-base sm:text-lg leading-relaxed mb-10 max-w-xl" style={{ color: '#c3c6d3' }}>
+            <p className="text-base sm:text-lg leading-relaxed mb-10 max-w-xl" style={{ color: 'var(--color-text-secondary)' }}>
               Step into the arena where precision meets passion. Join the elite community of football predictors and turn your insights into tangible rewards.
             </p>
 
@@ -132,9 +132,9 @@ export default async function HomePage() {
                 style={{
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'var(--glass-05)',
                   border: '1px solid rgba(174,198,255,0.3)',
-                  color: '#e1e2ec',
+                  color: 'var(--color-text-primary)',
                   backdropFilter: 'blur(8px)',
                 }}
               >
@@ -146,15 +146,15 @@ export default async function HomePage() {
 
           <div className="max-w-7xl mx-auto px-8">
           {/* Scoring System */}
-          <section className="py-16" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <section className="py-16" style={{ borderTop: '1px solid var(--color-border)' }}>
             <div className="mb-10">
               <h2
                 className="mb-2"
-                style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 40, color: '#e1e2ec' }}
+                style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 40, color: 'var(--color-text-primary)' }}
               >
                 The Winning Formula
               </h2>
-              <p style={{ color: '#c3c6d3' }}>Strategic points system designed for the true fans.</p>
+              <p style={{ color: 'var(--color-text-secondary)' }}>Strategic points system designed for the true fans.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ScoreCard
@@ -174,10 +174,10 @@ export default async function HomePage() {
                     🌍
                   </div>
                   <div
-                    style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 32, color: '#e1e2ec' }}
+                    style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 32, color: 'var(--color-text-primary)' }}
                   >Join the Squad</div>
                 </div>
-                <p className="text-sm mt-4" style={{ color: '#c3c6d3' }}>
+                <p className="text-sm mt-4" style={{ color: 'var(--color-text-secondary)' }}>
                   Compete with friends, climb the leaderboard, and turn every matchday into a battle of instincts.
                 </p>
               </div>
@@ -190,7 +190,7 @@ export default async function HomePage() {
               className="rounded-[48px] px-6 sm:px-16 py-14 sm:py-24 text-center relative overflow-hidden"
               style={{
                 background: 'linear-gradient(25deg, rgba(174,198,255,0.1) 0%, rgba(255,180,169,0.05) 100%)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid var(--color-border)',
               }}
             >
               <h2
@@ -199,13 +199,13 @@ export default async function HomePage() {
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
                   fontWeight: 800,
-                  color: '#e1e2ec',
+                  color: 'var(--color-text-primary)',
                   letterSpacing: '-1.44px',
                 }}
               >
                 Ready to join<br />the invasion?
               </h2>
-              <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto" style={{ color: '#c3c6d3' }}>
+              <p className="text-base sm:text-lg mb-10 max-w-2xl mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
                 Don&apos;t just watch the game. Own the outcome. Register today and get your first prediction streak bonus.
               </p>
               <Link
@@ -231,7 +231,7 @@ export default async function HomePage() {
 
       {/* Live Now */}
       {liveMatches && liveMatches.length > 0 && (
-        <section className="py-10" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <section className="py-10" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="flex items-center gap-3 mb-6">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ffb4a9] animate-pulse" />
             <h2 style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 800, fontSize: 32, color: '#ffb4a9', letterSpacing: '-0.5px' }}>
@@ -247,7 +247,7 @@ export default async function HomePage() {
       )}
 
       {/* Upcoming Matches */}
-      <section className={user ? 'py-8' : 'py-16'} style={user ? {} : { borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+      <section className={user ? 'py-8' : 'py-16'} style={user ? {} : { borderTop: '1px solid var(--color-border)' }}>
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
           <div>
             <h2
@@ -256,13 +256,13 @@ export default async function HomePage() {
                 fontFamily: F.display,
                 fontVariationSettings: '"wdth" 100',
                 fontWeight: 800,
-                color: '#e1e2ec',
+                color: 'var(--color-text-primary)',
                 letterSpacing: '-1px',
               }}
             >
               {user ? 'Match Predictor' : 'Upcoming Matches'}
             </h2>
-            <p className="mt-1" style={{ color: '#c3c6d3' }}>
+            <p className="mt-1" style={{ color: 'var(--color-text-secondary)' }}>
               {user
                 ? "Lock in your scores for this week's fixtures. Precision is everything."
                 : 'The biggest fixtures ready for your predictions.'}
@@ -278,13 +278,13 @@ export default async function HomePage() {
         </div>
 
         {!matches?.length ? (
-          <div className="text-center py-20" style={{ color: '#c3c6d3' }}>
+          <div className="text-center py-20" style={{ color: 'var(--color-text-secondary)' }}>
             <div className="mb-3 flex flex-col items-center">
-              <div className="w-14 h-14 rounded-xl overflow-hidden border border-[rgba(255,255,255,0.1)] flex flex-col">
+              <div className="w-14 h-14 rounded-xl overflow-hidden border border-[var(--color-border)] flex flex-col">
                 <div className="bg-[#e53e3e] text-white text-[10px] font-bold tracking-widest uppercase text-center py-1">
                   {new Date().toLocaleDateString('en-GB', { month: 'short' })}
                 </div>
-                <div className="bg-[#1e2028] flex-1 flex items-center justify-center text-[#e1e2ec] text-2xl font-extrabold font-[var(--font-anybody)] [font-variation-settings:'wdth'_100]">
+                <div className="bg-[#1e2028] flex-1 flex items-center justify-center text-[var(--color-text-primary)] text-2xl font-extrabold font-[var(--font-anybody)] [font-variation-settings:'wdth'_100]">
                   {new Date().getDate()}
                 </div>
               </div>
@@ -313,16 +313,16 @@ function ScoreCard({ points, pointsColor, title, description, iconBg, emoji }: {
       <div className="w-12 h-12 rounded-xl mb-5 flex items-center justify-center text-2xl" style={{ background: iconBg }}>
         {emoji}
       </div>
-      <h3 style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 32, color: '#e1e2ec' }}>
+      <h3 style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 700, fontSize: 32, color: 'var(--color-text-primary)' }}>
         {title}
       </h3>
       <div className="flex items-baseline gap-2 my-3">
         <span style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 800, fontSize: 48, color: pointsColor }}>
           {points}
         </span>
-        <span style={{ fontFamily: F.mono, fontSize: 14, color: '#c3c6d3', letterSpacing: '0.7px' }}>PTS</span>
+        <span style={{ fontFamily: F.mono, fontSize: 14, color: 'var(--color-text-secondary)', letterSpacing: '0.7px' }}>PTS</span>
       </div>
-      <p style={{ color: '#c3c6d3' }}>{description}</p>
+      <p style={{ color: 'var(--color-text-secondary)' }}>{description}</p>
     </div>
   )
 }

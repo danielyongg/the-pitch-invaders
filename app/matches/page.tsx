@@ -122,10 +122,10 @@ export default async function MatchesPage({ searchParams }: Props) {
     <div className="max-w-7xl mx-auto px-8 py-10">
       <LivePoller />
       <div className="mb-8">
-        <h1 className="font-[var(--font-anybody)] font-extrabold text-[40px] text-[#e1e2ec] tracking-[-1px] [font-variation-settings:'wdth'_100]">
+        <h1 className="font-[var(--font-anybody)] font-extrabold text-[40px] text-[var(--color-text-primary)] tracking-[-1px] [font-variation-settings:'wdth'_100]">
           Match Predictor
         </h1>
-        <p className="text-[#c3c6d3] mt-1">Lock in your scores for this week's fixtures. Precision is everything.</p>
+        <p className="text-[var(--color-text-secondary)] mt-1">Lock in your scores for this week's fixtures. Precision is everything.</p>
       </div>
 
       <div className="mb-8">
@@ -135,7 +135,7 @@ export default async function MatchesPage({ searchParams }: Props) {
       </div>
 
       {!matches?.length ? (
-        <div className="text-center py-20 text-[#c3c6d3]">
+        <div className="text-center py-20 text-[var(--color-text-secondary)]">
           <div className="text-4xl mb-3">📅</div>
           <p>No matches found</p>
           {(tournament || country) && (

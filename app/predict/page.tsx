@@ -37,28 +37,28 @@ export default async function PredictPage() {
   return (
     <div className="max-w-7xl mx-auto px-8 py-10">
       <div className="mb-8">
-        <h1 className="font-[var(--font-anybody)] font-extrabold text-[40px] text-[#e1e2ec] tracking-[-1px] [font-variation-settings:'wdth'_100]">My Predictions</h1>
-        <p className="text-[#c3c6d3] mt-1">Track your picks and points</p>
+        <h1 className="font-[var(--font-anybody)] font-extrabold text-[40px] text-[var(--color-text-primary)] tracking-[-1px] [font-variation-settings:'wdth'_100]">My Predictions</h1>
+        <p className="text-[var(--color-text-secondary)] mt-1">Track your picks and points</p>
       </div>
 
       {/* Stats bento */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {[
           { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[#aec6ff]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week` },
-          { label: 'EXACT SCORES', value: exactScores, color: 'text-[#e1e2ec]', sub: 'Perfect predictions' },
-          { label: 'CORRECT RESULTS', value: correctResults, color: 'text-[#e1e2ec]', sub: 'Right outcome' },
+          { label: 'EXACT SCORES', value: exactScores, color: 'text-[var(--color-text-primary)]', sub: 'Perfect predictions' },
+          { label: 'CORRECT RESULTS', value: correctResults, color: 'text-[var(--color-text-primary)]', sub: 'Right outcome' },
         ].map(s => (
           <div key={s.label} className="glass-card rounded-2xl p-6">
-            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[#c3c6d3] mb-2">{s.label}</div>
+            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">{s.label}</div>
             <div className={`font-[var(--font-anybody)] font-extrabold text-[48px] ${s.color} [font-variation-settings:'wdth'_100]`}>{s.value}</div>
-            <div className="text-sm text-[#c3c6d3] font-[var(--font-jetbrains)] mt-2">{s.sub}</div>
+            <div className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-2">{s.sub}</div>
           </div>
         ))}
       </div>
 
       {upcoming.length > 0 && (
         <section className="mb-10">
-          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[#e1e2ec] mb-5 [font-variation-settings:'wdth'_100]">Upcoming Predictions</h2>
+          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-5 [font-variation-settings:'wdth'_100]">Upcoming Predictions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcoming.map(p => (
               <MatchCard key={p.id} match={p.matches as any} prediction={p as any} userId={user.id} />
@@ -69,7 +69,7 @@ export default async function PredictPage() {
 
       {past.length > 0 && (
         <section>
-          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[#e1e2ec] mb-5 [font-variation-settings:'wdth'_100]">Prediction History</h2>
+          <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-5 [font-variation-settings:'wdth'_100]">Prediction History</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {past.map(p => (
               <MatchCard key={p.id} match={p.matches as any} prediction={p as any} userId={user.id} />
@@ -79,9 +79,9 @@ export default async function PredictPage() {
       )}
 
       {predictions?.length === 0 && (
-        <div className="text-center py-20 text-[#c3c6d3]">
+        <div className="text-center py-20 text-[var(--color-text-secondary)]">
           <div className="text-4xl mb-3">🎯</div>
-          <p className="text-[#e1e2ec] font-medium mb-2">No predictions yet</p>
+          <p className="text-[var(--color-text-primary)] font-medium mb-2">No predictions yet</p>
           <a href="/matches" className="mt-3 inline-block text-[#aec6ff] hover:text-[#c8d8ff] font-[var(--font-jetbrains)] tracking-wide text-sm">
             Browse matches →
           </a>

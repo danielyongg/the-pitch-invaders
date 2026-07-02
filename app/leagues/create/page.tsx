@@ -32,8 +32,8 @@ export default function CreateLeaguePage() {
 
   return (
     <div className="max-w-md mx-auto px-8 py-16">
-      <h1 className="font-[var(--font-anybody)] font-bold text-[40px] text-[#e1e2ec] mb-2 [font-variation-settings:'wdth'_100]">Create a League</h1>
-      <p className="text-[#c3c6d3] mb-8">Create a private league and invite your friends</p>
+      <h1 className="font-[var(--font-anybody)] font-bold text-[40px] text-[var(--color-text-primary)] mb-2 [font-variation-settings:'wdth'_100]">Create a League</h1>
+      <p className="text-[var(--color-text-secondary)] mb-8">Create a private league and invite your friends</p>
 
       <div className="glass-card rounded-2xl p-6">
         <form onSubmit={handleCreate} className="space-y-4">
@@ -43,11 +43,11 @@ export default function CreateLeaguePage() {
             </div>
           )}
           <div>
-            <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[#c3c6d3] mb-2">League Name</label>
+            <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)] mb-2">League Name</label>
             <input
               type="text" value={name} onChange={e => setName(e.target.value)} required maxLength={50}
               placeholder="e.g. Friday Night Predictors"
-              className="w-full bg-[#272a32] border border-[rgba(255,255,255,0.1)] text-[#e1e2ec] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[#6b7280]"
+              className="w-full bg-[var(--color-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#aec6ff] focus:border-transparent placeholder-[var(--color-text-muted)]"
             />
           </div>
           <button

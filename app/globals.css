@@ -1,10 +1,9 @@
 @import "tailwindcss";
 
-/* Force dark background everywhere */
 html,
 body {
-  background-color: #10131a !important;
-  color: #e1e2ec;
+  background-color: var(--color-navy);
+  color: var(--color-text-primary);
 }
 
 @theme {
@@ -12,6 +11,7 @@ body {
   --color-surface: #1d1f27;
   --color-input: #272a32;
   --color-card: #272a32;
+  --color-border-strong: #32353d;
   --color-accent: #aec6ff;
   --color-accent-dark: #002e6a;
   --color-accent-mid: #00408f;
@@ -23,12 +23,38 @@ body {
   --color-text-muted: #6b7280;
   --color-border: rgba(255,255,255,0.1);
   --color-footer: #0b0e15;
+  --glass-03: rgba(255,255,255,0.03);
+  --glass-05: rgba(255,255,255,0.05);
+  --glass-08: rgba(255,255,255,0.08);
+  --glass-20: rgba(255,255,255,0.2);
+  --color-navbar-bg: rgba(16,19,26,0.8);
+}
+
+/* Light theme: same token names, swapped values. Accent/brand colors
+   (aec6ff, ffb4a9, c50005, etc.) intentionally stay identical across
+   themes — only surfaces/text/borders flip. */
+:root[data-theme='light'] {
+  --color-navy: #f4f5f8;
+  --color-surface: #ffffff;
+  --color-input: #eceef3;
+  --color-card: #eceef3;
+  --color-border-strong: #d5d9e2;
+  --color-text-primary: #14161d;
+  --color-text-secondary: #4b5160;
+  --color-text-muted: #8b90a0;
+  --color-border: rgba(16,19,26,0.1);
+  --color-footer: #eceef3;
+  --glass-03: rgba(16,19,26,0.02);
+  --glass-05: rgba(16,19,26,0.04);
+  --glass-08: rgba(16,19,26,0.06);
+  --glass-20: rgba(16,19,26,0.12);
+  --color-navbar-bg: rgba(255,255,255,0.8);
 }
 
 /* Glassmorphism card */
 .glass-card {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--glass-05);
+  border: 1px solid var(--color-border);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }

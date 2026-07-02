@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import UserMenu from '@/components/auth/UserMenu'
 import MobileMenu from '@/components/ui/MobileMenu'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 export default async function Navbar() {
   const supabase = await createClient()
@@ -25,8 +26,8 @@ export default async function Navbar() {
     <nav
       className="sticky top-0 z-40 h-20 border-b relative"
       style={{
-        backgroundColor: 'rgba(16,19,26,0.8)',
-        borderColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'var(--color-navbar-bg)',
+        borderColor: 'var(--color-border)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
       }}
@@ -55,7 +56,7 @@ export default async function Navbar() {
               </span>
               <span
                 className="block text-[7px] xs:text-[8px] sm:text-[10px] tracking-[0.5px] sm:tracking-[1px] uppercase"
-                style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#c3c6d3' }}
+                style={{ fontFamily: 'var(--font-jetbrains), monospace', color: 'var(--color-text-secondary)' }}
               >
                 Your Sports League Simulator
               </span>
@@ -72,6 +73,9 @@ export default async function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-4">
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
           {user && profile ? (
             <>
               <Link
@@ -93,7 +97,7 @@ export default async function Navbar() {
               <Link
                 href="/auth/login"
                 className="hidden sm:inline text-sm transition"
-                style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#c3c6d3', letterSpacing: '0.7px' }}
+                style={{ fontFamily: 'var(--font-jetbrains), monospace', color: 'var(--color-text-secondary)', letterSpacing: '0.7px' }}
               >
                 Sign In
               </Link>
@@ -131,7 +135,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
     <Link
       href={href}
       className="text-sm transition hover:opacity-80 whitespace-nowrap"
-      style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#c3c6d3', letterSpacing: '0.7px' }}
+      style={{ fontFamily: 'var(--font-jetbrains), monospace', color: 'var(--color-text-secondary)', letterSpacing: '0.7px' }}
     >
       {label}
     </Link>

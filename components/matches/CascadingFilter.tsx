@@ -62,7 +62,7 @@ const PILL = (active: boolean) =>
   `flex-shrink-0 px-5 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide transition cursor-pointer ${
     active
       ? 'bg-[#aec6ff] text-[#002e6a] shadow-[0px_6px_12px_-3px_rgba(174,198,255,0.25)]'
-      : 'bg-[#272a32] border border-[rgba(255,255,255,0.05)] text-[#c3c6d3] hover:text-[#e1e2ec] hover:bg-[#32353d]'
+      : 'bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]'
   }`
 
 interface Props {

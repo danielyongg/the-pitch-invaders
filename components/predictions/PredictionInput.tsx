@@ -44,17 +44,17 @@ export default function PredictionInput({ matchId, userId, existing, onSaved }: 
         <button
           type="button"
           onClick={() => onChange(Math.max(0, value - 1))}
-          className="w-8 h-8 rounded-lg bg-[#272a32] hover:bg-[#32353d] text-[#e1e2ec] font-bold flex items-center justify-center transition border border-[rgba(255,255,255,0.1)]"
+          className="w-8 h-8 rounded-lg bg-[var(--color-input)] hover:bg-[var(--color-border-strong)] text-[var(--color-text-primary)] font-bold flex items-center justify-center transition border border-[var(--color-border)]"
         >
           −
         </button>
-        <div className="w-12 h-12 bg-white border border-[rgba(255,255,255,0.2)] rounded-lg flex items-center justify-center">
-          <span className="font-bold text-[#10131a] text-2xl">{value}</span>
+        <div className="w-12 h-12 bg-white border border-[var(--glass-20)] rounded-lg flex items-center justify-center">
+          <span className="font-bold text-[var(--color-navy)] text-2xl">{value}</span>
         </div>
         <button
           type="button"
           onClick={() => onChange(Math.min(20, value + 1))}
-          className="w-8 h-8 rounded-lg bg-[#272a32] hover:bg-[#32353d] text-[#e1e2ec] font-bold flex items-center justify-center transition border border-[rgba(255,255,255,0.1)]"
+          className="w-8 h-8 rounded-lg bg-[var(--color-input)] hover:bg-[var(--color-border-strong)] text-[var(--color-text-primary)] font-bold flex items-center justify-center transition border border-[var(--color-border)]"
         >
           +
         </button>
@@ -66,7 +66,7 @@ export default function PredictionInput({ matchId, userId, existing, onSaved }: 
     <div className="space-y-3 py-2">
       <div className="flex items-center justify-center gap-4">
         <ScoreInput value={home} onChange={setHome} />
-        <span className="text-[#c3c6d3] font-[var(--font-jetbrains)] italic">VS</span>
+        <span className="text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] italic">VS</span>
         <ScoreInput value={away} onChange={setAway} />
       </div>
 

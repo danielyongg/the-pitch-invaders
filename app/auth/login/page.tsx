@@ -86,7 +86,7 @@ function LoginForm() {
 
       <p className="text-center text-[var(--color-text-muted)] text-sm mt-6 font-[var(--font-jetbrains)]">
         Don&apos;t have an account?{' '}
-        <Link href="/auth/signup" className="text-[#aec6ff] hover:text-[#c8d8ff]">
+        <Link href="/auth/signup" className="text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)]">
           Sign up for free
         </Link>
       </p>
@@ -99,7 +99,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="font-[var(--font-anybody)] font-extrabold text-3xl text-[#aec6ff] tracking-tight [font-variation-settings:'wdth'_100]">The Pitch Invaders</h1>
+          <h1 className="font-[var(--font-anybody)] font-extrabold text-3xl text-[var(--color-accent-text)] tracking-tight [font-variation-settings:'wdth'_100]">The Pitch Invaders</h1>
           <p className="text-[var(--color-text-secondary)] mt-2 font-[var(--font-jetbrains)] tracking-wide text-sm">Sign in to your account</p>
         </div>
         <Suspense fallback={<div className="glass-card rounded-2xl p-8 animate-pulse h-96" />}>

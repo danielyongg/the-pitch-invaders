@@ -77,7 +77,7 @@ export default function PredictionInput({ matchId, userId, existing, onSaved }: 
         disabled={saving || isLocked}
         className={`w-full py-3 rounded-xl text-sm font-bold font-[var(--font-anybody)] [font-variation-settings:'wdth'_100] tracking-wide transition ${
           isLocked
-            ? 'bg-[rgba(174,198,255,0.2)] text-[#aec6ff] border border-[rgba(174,198,255,0.4)]'
+            ? 'bg-[rgba(174,198,255,0.2)] text-[var(--color-accent-text)] border border-[rgba(174,198,255,0.4)]'
             : 'bg-[#aec6ff] hover:bg-[#c8d8ff] text-[#002e6a]'
         } disabled:opacity-50`}
       >

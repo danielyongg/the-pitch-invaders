@@ -106,7 +106,7 @@ export default async function HomePage() {
               }}
             >
               Master the Pitch.<br />
-              <span style={{ color: '#aec6ff', fontWeight: 400 }}>Predict</span> the Glory.
+              <span style={{ color: 'var(--color-accent-text)', fontWeight: 400 }}>Predict</span> the Glory.
             </h1>
 
             <p className="text-base sm:text-lg leading-relaxed mb-10 max-w-xl" style={{ color: 'var(--color-text-secondary)' }}>
@@ -271,7 +271,7 @@ export default async function HomePage() {
           <Link
             href="/matches"
             className="text-sm transition hover:opacity-80"
-            style={{ fontFamily: F.mono, color: '#aec6ff', letterSpacing: '0.7px' }}
+            style={{ fontFamily: F.mono, color: 'var(--color-accent-text)', letterSpacing: '0.7px' }}
           >
             VIEW ALL FIXTURES →
           </Link>

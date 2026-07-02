@@ -72,12 +72,12 @@ export default async function LeagueDetailPage({ params }: Props) {
                     <div className="hidden sm:flex w-8 h-8 rounded-full bg-[var(--color-input)] border border-[rgba(174,198,255,0.2)] items-center justify-center text-sm font-bold text-[var(--color-text-primary)] flex-shrink-0">
                       {entry.username[0].toUpperCase()}
                     </div>
-                    <span className={`text-sm font-medium truncate ${isMe ? 'text-[#aec6ff]' : 'text-[var(--color-text-primary)]'}`}>
+                    <span className={`text-sm font-medium truncate ${isMe ? 'text-[var(--color-accent-text)]' : 'text-[var(--color-text-primary)]'}`}>
                       {entry.username}
                       {isMe && <span className="text-xs text-[var(--color-text-muted)] ml-1">(you)</span>}
                     </span>
                   </div>
-                  <span className="font-[var(--font-anybody)] text-base sm:text-xl font-bold text-[#aec6ff] text-center [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
+                  <span className="font-[var(--font-anybody)] text-base sm:text-xl font-bold text-[var(--color-accent-text)] text-center [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
                   <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{entry.exact_scores}</span>
                   <span className="text-sm text-[var(--color-text-muted)] text-center hidden sm:block">{entry.total_preds}</span>
                 </div>

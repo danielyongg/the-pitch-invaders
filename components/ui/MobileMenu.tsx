@@ -45,7 +45,7 @@ export default function MobileMenu({ items, totalPoints, userId }: { items: NavI
               href={`/profile/${userId}`}
               onClick={() => setOpen(false)}
               className="text-sm transition hover:opacity-80"
-              style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#aec6ff', letterSpacing: '0.7px' }}
+              style={{ fontFamily: 'var(--font-jetbrains), monospace', color: 'var(--color-accent-text)', letterSpacing: '0.7px' }}
             >
               {totalPoints.toLocaleString('en-US')} pts
             </Link>

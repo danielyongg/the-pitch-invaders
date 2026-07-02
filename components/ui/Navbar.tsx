@@ -49,7 +49,7 @@ export default async function Navbar() {
                 style={{
                   fontFamily: 'var(--font-anybody), sans-serif',
                   fontVariationSettings: '"wdth" 100',
-                  color: '#aec6ff',
+                  color: 'var(--color-accent-text)',
                 }}
               >
                 The Pitch Invaders
@@ -86,7 +86,7 @@ export default async function Navbar() {
                   border: '1px solid rgba(174,198,255,0.2)',
                 }}
               >
-                <span style={{ fontFamily: 'var(--font-jetbrains), monospace', color: '#aec6ff', fontSize: 13, letterSpacing: '0.7px' }}>
+                <span style={{ fontFamily: 'var(--font-jetbrains), monospace', color: 'var(--color-accent-text)', fontSize: 13, letterSpacing: '0.7px' }}>
                   {totalPoints.toLocaleString('en-US')} pts
                 </span>
               </Link>

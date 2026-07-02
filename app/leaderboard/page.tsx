@@ -23,7 +23,7 @@ export default async function LeaderboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-10">
         <div>
-          <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[#aec6ff] [font-variation-settings:'wdth'_100]">Global Leaderboard</h1>
+          <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[var(--color-accent-text)] [font-variation-settings:'wdth'_100]">Global Leaderboard</h1>
           <p className="text-[var(--color-text-secondary)] mt-1">Track the world&apos;s most accurate sports predictors. Rise through the ranks.</p>
         </div>
         <div className="flex gap-3">
@@ -87,13 +87,13 @@ export default async function LeaderboardPage() {
                       {entry.username[0].toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className={`text-sm font-bold truncate ${isMe ? 'text-[#aec6ff]' : 'text-[var(--color-text-primary)]'}`}>
+                      <div className={`text-sm font-bold truncate ${isMe ? 'text-[var(--color-accent-text)]' : 'text-[var(--color-text-primary)]'}`}>
                         {entry.username}
                         {isMe && <span className="text-xs text-[var(--color-text-muted)] ml-1 font-normal">(you)</span>}
                       </div>
                     </div>
                   </div>
-                  <span className="font-[var(--font-anybody)] text-base sm:text-xl font-bold text-[#aec6ff] text-center [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
+                  <span className="font-[var(--font-anybody)] text-base sm:text-xl font-bold text-[var(--color-accent-text)] text-center [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
                   <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{entry.exact_scores}</span>
                   <span className="text-sm text-[var(--color-text-muted)] text-center hidden sm:block">{entry.total_preds}</span>
                 </div>
@@ -158,7 +158,7 @@ function PodiumCard({ entry, rank, rankColor, isChampion }: {
           </div>
           <div>
             <div className="text-[9px] sm:text-xs text-[var(--color-text-secondary)] uppercase font-[var(--font-jetbrains)] tracking-wide">Exact</div>
-            <div className={`font-[var(--font-anybody)] font-bold [font-variation-settings:'wdth'_100] text-lg ${isChampion ? 'sm:text-[40px] text-[#ffb4a9]' : 'sm:text-[28px] text-[#aec6ff]'}`}>
+            <div className={`font-[var(--font-anybody)] font-bold [font-variation-settings:'wdth'_100] text-lg ${isChampion ? 'sm:text-[40px] text-[#ffb4a9]' : 'sm:text-[28px] text-[var(--color-accent-text)]'}`}>
               {entry.exact_scores}
             </div>
           </div>

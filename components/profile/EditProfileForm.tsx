@@ -68,7 +68,7 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-sm font-[var(--font-jetbrains)] tracking-wide text-[#aec6ff] hover:text-[#c8d8ff] transition border border-[rgba(174,198,255,0.3)] rounded-xl px-4 py-2"
+        className="text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] transition border border-[rgba(174,198,255,0.3)] rounded-xl px-4 py-2"
       >
         Edit Profile
       </button>
@@ -109,7 +109,7 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-[var(--font-jetbrains)] tracking-wide text-[var(--color-text-secondary)]">Favorite Teams</label>
           {favoriteTeams.length > 0 && (
-            <span className="text-xs text-[#aec6ff] font-[var(--font-jetbrains)]">{favoriteTeams.length} selected</span>
+            <span className="text-xs text-[var(--color-accent-text)] font-[var(--font-jetbrains)]">{favoriteTeams.length} selected</span>
           )}
         </div>
         <input

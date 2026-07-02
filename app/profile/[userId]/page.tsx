@@ -46,7 +46,7 @@ export default async function ProfilePage({ params }: Props) {
     <div className="max-w-4xl mx-auto px-8 py-10">
       {/* Profile Header */}
       <div className="flex items-center gap-4 sm:gap-5 mb-6">
-        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-[#00408f] flex items-center justify-center flex-shrink-0 font-[var(--font-anybody)] font-bold text-xl sm:text-3xl text-[#aec6ff] [font-variation-settings:'wdth'_100]">
+        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-[#00408f] flex items-center justify-center flex-shrink-0 font-[var(--font-anybody)] font-bold text-xl sm:text-3xl text-[var(--color-accent-text)] [font-variation-settings:'wdth'_100]">
           {profile.username[0].toUpperCase()}
         </div>
         <div className="min-w-0">
@@ -66,7 +66,7 @@ export default async function ProfilePage({ params }: Props) {
       {/* Stats bento */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'TOTAL POINTS', value: stats?.total_points ?? 0, color: 'text-[#aec6ff]' },
+          { label: 'TOTAL POINTS', value: stats?.total_points ?? 0, color: 'text-[var(--color-accent-text)]' },
           { label: 'EXACT SCORES', value: stats?.exact_scores ?? 0, color: 'text-[var(--color-text-primary)]' },
           { label: 'CORRECT RESULTS', value: stats?.correct_results ?? 0, color: 'text-[var(--color-text-primary)]' },
           { label: 'PREDICTIONS', value: stats?.total_preds ?? 0, color: 'text-[var(--color-text-secondary)]' },
@@ -97,7 +97,7 @@ export default async function ProfilePage({ params }: Props) {
                       Result: <span className="text-[var(--color-text-primary)] font-bold">{match.home_score}–{match.away_score}</span>
                     </div>
                   )}
-                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[#aec6ff]' : pts === 1 ? 'text-[#ffb4a9]' : 'text-[var(--color-text-muted)]'}`}>
+                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[#ffb4a9]' : 'text-[var(--color-text-muted)]'}`}>
                     +{pts}
                   </span>
                 </div>

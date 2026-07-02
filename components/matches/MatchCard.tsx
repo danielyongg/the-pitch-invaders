@@ -80,7 +80,7 @@ function TeamBadge({ src, name }: { src: string | null; name: string }) {
 }
 
 const POINTS_LABEL: Record<number, { label: string; color: string }> = {
-  3: { label: '+3', color: 'text-[#aec6ff]' },
+  3: { label: '+3', color: 'text-[var(--color-accent-text)]' },
   1: { label: '+1', color: 'text-[#ffb4a9]' },
   0: { label: '+0', color: 'text-[var(--color-text-muted)]' },
 }
@@ -215,7 +215,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           </p>
         ) : (
           <p className="text-xs text-center text-[var(--color-text-muted)] py-1">
-            <a href="/auth/login" className="text-[#aec6ff] hover:text-[#c8d8ff] font-[var(--font-jetbrains)] tracking-wide">Sign in</a>
+            <a href="/auth/login" className="text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide">Sign in</a>
             {' '}to make a prediction
           </p>
         )}

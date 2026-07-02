@@ -48,7 +48,7 @@ export default function SignupPage() {
           <div className="text-5xl mb-4">📧</div>
           <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-3 [font-variation-settings:'wdth'_100]">Check your email!</h2>
           <p className="text-[var(--color-text-secondary)]">We sent a confirmation link to <span className="text-[var(--color-text-primary)]">{email}</span>. Click it to activate your account.</p>
-          <Link href="/auth/login" className="mt-6 inline-block text-[#aec6ff] hover:text-[#c8d8ff] font-[var(--font-jetbrains)] tracking-wide text-sm">
+          <Link href="/auth/login" className="mt-6 inline-block text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide text-sm">
             Back to Sign In →
           </Link>
         </div>
@@ -60,7 +60,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="font-[var(--font-anybody)] font-extrabold text-3xl text-[#aec6ff] tracking-tight [font-variation-settings:'wdth'_100]">The Pitch Invaders</h1>
+          <h1 className="font-[var(--font-anybody)] font-extrabold text-3xl text-[var(--color-accent-text)] tracking-tight [font-variation-settings:'wdth'_100]">The Pitch Invaders</h1>
           <p className="text-[var(--color-text-secondary)] mt-2 font-[var(--font-jetbrains)] tracking-wide text-sm">Create your account</p>
         </div>
 
@@ -114,7 +114,7 @@ export default function SignupPage() {
 
           <p className="text-center text-[var(--color-text-muted)] text-sm mt-6 font-[var(--font-jetbrains)]">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-[#aec6ff] hover:text-[#c8d8ff]">Sign in</Link>
+            <Link href="/auth/login" className="text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)]">Sign in</Link>
           </p>
         </div>
       </div>

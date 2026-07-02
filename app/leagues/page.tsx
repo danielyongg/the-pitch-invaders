@@ -55,7 +55,7 @@ export default async function LeaguesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
         <div>
-          <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[#aec6ff] [font-variation-settings:'wdth'_100]">Private Leagues</h1>
+          <h1 className="font-[var(--font-anybody)] font-bold text-[28px] sm:text-[40px] text-[var(--color-accent-text)] [font-variation-settings:'wdth'_100]">Private Leagues</h1>
           <p className="text-[var(--color-text-secondary)] mt-1">Manage your squads, track rankings, and invite the elite.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -87,7 +87,7 @@ export default async function LeaguesPage() {
           <div className="flex items-center gap-3 mb-5">
             <h2 className="font-[var(--font-anybody)] font-semibold text-2xl text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">My Leagues</h2>
             {leagues.length > 0 && (
-              <span className="bg-[rgba(174,198,255,0.1)] text-[#aec6ff] text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full">
+              <span className="bg-[rgba(174,198,255,0.1)] text-[var(--color-accent-text)] text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full">
                 {leagues.length} ACTIVE
               </span>
             )}
@@ -121,7 +121,7 @@ export default async function LeaguesPage() {
                     🏆
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-[var(--font-anybody)] font-semibold text-lg sm:text-2xl text-[var(--color-text-primary)] group-hover:text-[#aec6ff] transition truncate [font-variation-settings:'wdth'_100]">
+                    <h3 className="font-[var(--font-anybody)] font-semibold text-lg sm:text-2xl text-[var(--color-text-primary)] group-hover:text-[var(--color-accent-text)] transition truncate [font-variation-settings:'wdth'_100]">
                       {league.name}
                     </h3>
                     <p className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide mt-1">
@@ -130,12 +130,12 @@ export default async function LeaguesPage() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-widest uppercase">Rank</div>
-                    <div className="font-[var(--font-anybody)] font-bold text-2xl sm:text-[40px] text-[#aec6ff] [font-variation-settings:'wdth'_100]">
+                    <div className="font-[var(--font-anybody)] font-bold text-2xl sm:text-[40px] text-[var(--color-accent-text)] [font-variation-settings:'wdth'_100]">
                       {rank ? `#${String(rank).padStart(2, '0')}` : '—'}
                     </div>
                   </div>
                   <div className="hidden sm:block border-l border-[var(--glass-05)] pl-6 flex-shrink-0">
-                    <span className="text-[var(--color-text-secondary)] group-hover:text-[#aec6ff] transition">›</span>
+                    <span className="text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent-text)] transition">›</span>
                   </div>
                 </Link>
                 )
@@ -148,7 +148,7 @@ export default async function LeaguesPage() {
         <div className="space-y-4">
           {/* Stats */}
           <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[#aec6ff] mb-4">League Stats</div>
+            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-accent-text)] mb-4">League Stats</div>
             <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)]">Global Percentile</div>
             <div className="font-[var(--font-anybody)] font-extrabold text-[48px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">
               {globalPercentile ? `Top ${100 - globalPercentile + 1}%` : '—'}

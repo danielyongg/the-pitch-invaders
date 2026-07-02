@@ -141,7 +141,7 @@ export default async function MatchesPage({ searchParams }: Props) {
           {(tournament || country) && (
             <p className="text-sm mt-2">
               Try selecting another league or{' '}
-              <a href="/matches" className="text-[#aec6ff] hover:text-[#c8d8ff]">view all leagues</a>
+              <a href="/matches" className="text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)]">view all leagues</a>
             </p>
           )}
         </div>

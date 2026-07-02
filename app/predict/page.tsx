@@ -44,7 +44,7 @@ export default async function PredictPage() {
       {/* Stats bento */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {[
-          { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[#aec6ff]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week` },
+          { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[var(--color-accent-text)]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week` },
           { label: 'EXACT SCORES', value: exactScores, color: 'text-[var(--color-text-primary)]', sub: 'Perfect predictions' },
           { label: 'CORRECT RESULTS', value: correctResults, color: 'text-[var(--color-text-primary)]', sub: 'Right outcome' },
         ].map(s => (
@@ -82,7 +82,7 @@ export default async function PredictPage() {
         <div className="text-center py-20 text-[var(--color-text-secondary)]">
           <div className="text-4xl mb-3">🎯</div>
           <p className="text-[var(--color-text-primary)] font-medium mb-2">No predictions yet</p>
-          <a href="/matches" className="mt-3 inline-block text-[#aec6ff] hover:text-[#c8d8ff] font-[var(--font-jetbrains)] tracking-wide text-sm">
+          <a href="/matches" className="mt-3 inline-block text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide text-sm">
             Browse matches →
           </a>
         </div>

@@ -48,8 +48,8 @@ export default function PredictionInput({ matchId, userId, existing, onSaved }: 
         >
           −
         </button>
-        <div className="w-12 h-12 bg-white border border-[var(--glass-20)] rounded-lg flex items-center justify-center">
-          <span className="font-bold text-[var(--color-navy)] text-2xl">{value}</span>
+        <div className="w-12 h-12 bg-[var(--color-surface)] border border-[var(--glass-20)] rounded-lg flex items-center justify-center">
+          <span className="font-bold text-[var(--color-text-primary)] text-2xl">{value}</span>
         </div>
         <button
           type="button"

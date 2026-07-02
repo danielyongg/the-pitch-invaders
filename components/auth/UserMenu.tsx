@@ -30,7 +30,7 @@ export default function UserMenu({ profile }: { profile: Profile }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition"
+        className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
       >
         <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-black font-bold text-sm">
           {profile.username[0].toUpperCase()}
@@ -39,25 +39,25 @@ export default function UserMenu({ profile }: { profile: Profile }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-xl overflow-hidden z-50">
           <Link
             href={`/profile/${profile.id}`}
-            className="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition"
+            className="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--glass-08)] hover:text-[var(--color-text-primary)] transition"
             onClick={() => setOpen(false)}
           >
             My Profile
           </Link>
           <Link
             href="/leagues"
-            className="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition"
+            className="block px-4 py-3 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--glass-08)] hover:text-[var(--color-text-primary)] transition"
             onClick={() => setOpen(false)}
           >
             My Leagues
           </Link>
-          <div className="border-t border-gray-800" />
+          <div className="border-t border-[var(--color-border)]" />
           <button
             onClick={signOut}
-            className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-gray-800 transition"
+            className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-[var(--glass-08)] transition"
           >
             Sign Out
           </button>

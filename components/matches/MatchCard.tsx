@@ -170,7 +170,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-1">
-                <span className="font-[var(--font-anybody)] font-bold text-2xl text-[rgba(195,198,211,0.5)] [font-variation-settings:'wdth'_100]">VS</span>
+                <span className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-muted)] [font-variation-settings:'wdth'_100]">VS</span>
                 <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
                   {kickoffTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                   <div className="text-[var(--color-text-muted)]">

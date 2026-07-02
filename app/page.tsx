@@ -101,15 +101,15 @@ export default async function HomePage() {
                 fontFamily: F.display,
                 fontVariationSettings: '"wdth" 100',
                 fontWeight: 800,
-                color: 'var(--color-text-primary)',
+                color: '#e1e2ec',
                 letterSpacing: '-1.44px',
               }}
             >
               Master the Pitch.<br />
-              <span style={{ color: 'var(--color-accent-text)', fontWeight: 400 }}>Predict</span> the Glory.
+              <span style={{ color: '#aec6ff', fontWeight: 400 }}>Predict</span> the Glory.
             </h1>
 
-            <p className="text-base sm:text-lg leading-relaxed mb-10 max-w-xl" style={{ color: 'var(--color-text-secondary)' }}>
+            <p className="text-base sm:text-lg leading-relaxed mb-10 max-w-xl" style={{ color: '#c3c6d3' }}>
               Step into the arena where precision meets passion. Join the elite community of football predictors and turn your insights into tangible rewards.
             </p>
 
@@ -132,9 +132,9 @@ export default async function HomePage() {
                 style={{
                   fontFamily: F.display,
                   fontVariationSettings: '"wdth" 100',
-                  background: 'var(--glass-05)',
+                  background: 'rgba(255,255,255,0.05)',
                   border: '1px solid rgba(174,198,255,0.3)',
-                  color: 'var(--color-text-primary)',
+                  color: '#e1e2ec',
                   backdropFilter: 'blur(8px)',
                 }}
               >

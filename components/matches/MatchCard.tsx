@@ -81,7 +81,7 @@ function TeamBadge({ src, name }: { src: string | null; name: string }) {
 
 const POINTS_LABEL: Record<number, { label: string; color: string }> = {
   3: { label: '+3', color: 'text-[var(--color-accent-text)]' },
-  1: { label: '+1', color: 'text-[#ffb4a9]' },
+  1: { label: '+1', color: 'text-[var(--color-live-text)]' },
   0: { label: '+0', color: 'text-[var(--color-text-muted)]' },
 }
 
@@ -124,7 +124,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         </div>
         <div className="flex items-center gap-2">
           {isLive && (
-            <span className="flex items-center gap-1 text-xs text-[#ffb4a9] font-[var(--font-jetbrains)] font-semibold tracking-wide">
+            <span className="flex items-center gap-1 text-xs text-[var(--color-live-text)] font-[var(--font-jetbrains)] font-semibold tracking-wide">
               <span className="w-1.5 h-1.5 rounded-full bg-[#ffb4a9] animate-pulse" />
               {liveMinute && liveMinute !== 'LIVE' ? `LIVE ${liveMinute}` : 'LIVE'}
             </span>
@@ -137,7 +137,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
               </span>
             </div>
           ) : locked ? (
-            <span className="text-xs text-[#ffb4a9] bg-[rgba(255,180,169,0.1)] px-2 py-0.5 rounded-full font-[var(--font-jetbrains)] tracking-wide">Locked</span>
+            <span className="text-xs text-[var(--color-live-text)] bg-[rgba(255,180,169,0.1)] px-2 py-0.5 rounded-full font-[var(--font-jetbrains)] tracking-wide">Locked</span>
           ) : (
             <KickoffCountdown kickoffTime={match.kickoff_time} onKickoff={() => setLocked(true)} />
           )}

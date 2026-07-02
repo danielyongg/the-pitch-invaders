@@ -86,7 +86,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSignup} className="space-y-4">
             {error && (
-              <div className="bg-[rgba(197,0,5,0.1)] border border-[rgba(255,180,169,0.3)] text-[#ffb4a9] text-sm px-4 py-3 rounded-xl">
+              <div className="bg-[rgba(197,0,5,0.1)] border border-[rgba(255,180,169,0.3)] text-[var(--color-live-text)] text-sm px-4 py-3 rounded-xl">
                 {error}
               </div>
             )}

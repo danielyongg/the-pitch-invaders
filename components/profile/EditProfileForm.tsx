@@ -78,7 +78,7 @@ export default function EditProfileForm({ profile, teamsByLeague }: Props) {
   return (
     <form onSubmit={handleSave} className="glass-card rounded-2xl p-6 space-y-4 mb-10">
       {error && (
-        <div className="bg-[rgba(197,0,5,0.1)] border border-[rgba(255,180,169,0.3)] text-[#ffb4a9] text-sm px-4 py-3 rounded-xl">
+        <div className="bg-[rgba(197,0,5,0.1)] border border-[rgba(255,180,169,0.3)] text-[var(--color-live-text)] text-sm px-4 py-3 rounded-xl">
           {error}
         </div>
       )}

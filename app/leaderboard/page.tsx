@@ -142,7 +142,7 @@ function PodiumCard({ entry, rank, rankColor, isChampion }: {
         )}
 
         <div className={`font-[var(--font-anybody)] font-bold text-sm ${isChampion ? 'sm:text-[32px]' : 'sm:text-[24px]'} truncate [font-variation-settings:'wdth'_100]`}
-          style={{ color: rank === 1 ? '#aec6ff' : 'var(--color-text-primary)' }}>
+          style={{ color: rank === 1 ? 'var(--color-accent-text)' : 'var(--color-text-primary)' }}>
           {entry.username}
         </div>
         <div className="hidden sm:block text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-widest uppercase mt-1">
@@ -158,7 +158,7 @@ function PodiumCard({ entry, rank, rankColor, isChampion }: {
           </div>
           <div>
             <div className="text-[9px] sm:text-xs text-[var(--color-text-secondary)] uppercase font-[var(--font-jetbrains)] tracking-wide">Exact</div>
-            <div className={`font-[var(--font-anybody)] font-bold [font-variation-settings:'wdth'_100] text-lg ${isChampion ? 'sm:text-[40px] text-[#ffb4a9]' : 'sm:text-[28px] text-[var(--color-accent-text)]'}`}>
+            <div className={`font-[var(--font-anybody)] font-bold [font-variation-settings:'wdth'_100] text-lg ${isChampion ? 'sm:text-[40px] text-[var(--color-live-text)]' : 'sm:text-[28px] text-[var(--color-accent-text)]'}`}>
               {entry.exact_scores}
             </div>
           </div>

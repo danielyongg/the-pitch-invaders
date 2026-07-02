@@ -97,7 +97,7 @@ export default async function ProfilePage({ params }: Props) {
                       Result: <span className="text-[var(--color-text-primary)] font-bold">{match.home_score}–{match.away_score}</span>
                     </div>
                   )}
-                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[#ffb4a9]' : 'text-[var(--color-text-muted)]'}`}>
+                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[var(--color-live-text)]' : 'text-[var(--color-text-muted)]'}`}>
                     +{pts}
                   </span>
                 </div>

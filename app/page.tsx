@@ -234,7 +234,7 @@ export default async function HomePage() {
         <section className="py-10" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="flex items-center gap-3 mb-6">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ffb4a9] animate-pulse" />
-            <h2 style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 800, fontSize: 32, color: '#ffb4a9', letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontFamily: F.display, fontVariationSettings: '"wdth" 100', fontWeight: 800, fontSize: 32, color: 'var(--color-live-text)', letterSpacing: '-0.5px' }}>
               Live Now
             </h2>
           </div>

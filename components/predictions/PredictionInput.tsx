@@ -70,7 +70,7 @@ export default function PredictionInput({ matchId, userId, existing, onSaved }: 
         <ScoreInput value={away} onChange={setAway} />
       </div>
 
-      {error && <p className="text-xs text-[#ffb4a9] text-center font-[var(--font-jetbrains)]">{error}</p>}
+      {error && <p className="text-xs text-[var(--color-live-text)] text-center font-[var(--font-jetbrains)]">{error}</p>}
 
       <button
         onClick={save}

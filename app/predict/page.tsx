@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import MatchCard from '@/components/matches/MatchCard'
+import MatchCard, { LEAGUE_NAMES } from '@/components/matches/MatchCard'
 
 export default async function PredictPage() {
   const supabase = await createClient()
@@ -25,6 +25,19 @@ export default async function PredictPage() {
     ?.filter(p => new Date(p.created_at) >= weekAgo)
     .reduce((sum, p) => sum + (p.points_awarded ?? 0), 0) ?? 0
 
+  const totalPredictions = predictions?.length ?? 0
+  const scoredPredictions = predictions?.filter(p => p.points_awarded != null).length ?? 0
+  const exactRate = scoredPredictions ? Math.round((exactScores / scoredPredictions) * 100) : 0
+  const correctRate = scoredPredictions ? Math.round((correctResults / scoredPredictions) * 100) : 0
+
+  const leagueCounts: Record<number, number> = {}
+  for (const p of predictions ?? []) {
+    const leagueId = (p.matches as any)?.league_id
+    if (leagueId != null) leagueCounts[leagueId] = (leagueCounts[leagueId] ?? 0) + 1
+  }
+  const topLeagueId = Object.keys(leagueCounts).sort((a, b) => leagueCounts[+b] - leagueCounts[+a])[0]
+  const topLeague = topLeagueId ? (LEAGUE_NAMES[+topLeagueId] ?? 'Unknown') : '—'
+
   const upcoming = predictions?.filter(p => {
     const m = p.matches as any
     return m && new Date(m.kickoff_time) > new Date()
@@ -42,7 +55,7 @@ export default async function PredictPage() {
       </div>
 
       {/* Stats bento */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         {[
           { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[var(--color-accent-text)]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week` },
           { label: 'EXACT SCORES', value: exactScores, color: 'text-[var(--color-text-primary)]', sub: 'Perfect predictions' },
@@ -54,6 +67,28 @@ export default async function PredictPage() {
             <div className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-2">{s.sub}</div>
           </div>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {[
+          { label: 'PREDICTIONS MADE', value: totalPredictions, sub: `${scoredPredictions} with a result` },
+          { label: 'RESULTS IN', value: scoredPredictions, sub: `${totalPredictions - scoredPredictions} pending` },
+          { label: 'EXACT SCORE RATE', value: `${exactRate}%`, sub: `${exactScores} / ${scoredPredictions} scored` },
+          { label: 'CORRECT RESULT RATE', value: `${correctRate}%`, sub: `${correctResults} / ${scoredPredictions} scored` },
+        ].map(s => (
+          <div key={s.label} className="glass-card rounded-2xl p-6">
+            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">{s.label}</div>
+            <div className="font-[var(--font-anybody)] font-extrabold text-[32px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">{s.value}</div>
+            <div className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-2">{s.sub}</div>
+          </div>
+        ))}
+        <div className="glass-card rounded-2xl p-6 sm:col-span-2 lg:col-span-4">
+          <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">MOST PREDICTED COMPETITION</div>
+          <div className="font-[var(--font-anybody)] font-extrabold text-[32px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100]">{topLeague}</div>
+          <div className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-2">
+            {topLeagueId ? `${leagueCounts[+topLeagueId]} predictions` : 'No predictions yet'}
+          </div>
+        </div>
       </div>
 
       {upcoming.length > 0 && (

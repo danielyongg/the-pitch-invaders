@@ -11,7 +11,7 @@ const ROUND_LABELS: Record<string, string> = {
   knockout: 'Knockout Stage',
 }
 
-const LEAGUE_NAMES: Record<number, string> = {
+export const LEAGUE_NAMES: Record<number, string> = {
   77: 'World Cup 2026',
   47: 'English Premier League',
   87: 'La Liga',

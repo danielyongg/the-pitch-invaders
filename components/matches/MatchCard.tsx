@@ -51,30 +51,52 @@ const COUNTRY_CODE: Record<string, string> = {
 }
 
 function getFlagUrl(teamName: string): string | null {
-  // Handle "Team A/Team B" placeholder names (knockout TBD)
-  const base = teamName.split('/')[0].trim()
-  const code = COUNTRY_CODE[teamName] ?? COUNTRY_CODE[base]
+  const code = COUNTRY_CODE[teamName.trim()]
   if (!code) return null
   return `https://flagcdn.com/${code}.svg`
 }
 
-function getTeamImageUrl(match: Match, isHome: boolean): string | null {
-  if (match.league_id === 77) return getFlagUrl(isHome ? match.home_team_name : match.away_team_name)
-  return (isHome ? match.home_team_logo : match.away_team_logo) ?? null
+// "Team A/Team B" placeholder (knockout TBD) — show both candidates' flags
+function getFlagUrls(teamName: string): string[] {
+  return teamName.split('/').map(getFlagUrl).filter((u): u is string => !!u)
+}
+
+function getTeamImageUrls(match: Match, isHome: boolean): string[] {
+  const name = isHome ? match.home_team_name : match.away_team_name
+  if (match.league_id === 77) return getFlagUrls(name)
+  const logo = (isHome ? match.home_team_logo : match.away_team_logo) ?? null
+  return logo ? [logo] : []
 }
 
 // ponytail: img URLs from upstream APIs sometimes 404 — initials badge as visual fallback, no extra request
-function TeamBadge({ src, name }: { src: string | null; name: string }) {
-  const [failed, setFailed] = useState(false)
-  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()
+function TeamBadge({ srcs, name }: { srcs: string[]; name: string }) {
+  const [failed, setFailed] = useState<Record<number, boolean>>({})
+  const initials = name.split(/[ /]/).map(w => w[0]).join('').slice(0, 3).toUpperCase()
+  const visible = srcs.filter((_, i) => !failed[i])
+
+  if (visible.length === 0) {
+    return (
+      <div className="w-16 h-16 flex items-center justify-center">
+        <div className="w-full h-full rounded-full bg-[var(--color-border-strong)] flex items-center justify-center">
+          <span className="text-sm font-bold text-[var(--color-text-secondary)]">{initials}</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (visible.length === 1) {
+    return (
+      <div className="w-16 h-16 flex items-center justify-center">
+        <img src={visible[0]} alt={name} className="w-full h-full object-contain" onError={() => setFailed(f => ({ ...f, [srcs.indexOf(visible[0])]: true }))} />
+      </div>
+    )
+  }
+
   return (
-    <div className="w-16 h-16 flex items-center justify-center">
-      {src && !failed
-        ? <img src={src} alt={name} className="w-full h-full object-contain" onError={() => setFailed(true)} />
-        : <div className="w-full h-full rounded-full bg-[var(--color-border-strong)] flex items-center justify-center">
-            <span className="text-sm font-bold text-[var(--color-text-secondary)]">{initials}</span>
-          </div>
-      }
+    <div className="w-16 h-16 flex items-center justify-center gap-1">
+      {srcs.map((src, i) => !failed[i] && (
+        <img key={src} src={src} alt={name} className="w-1/2 h-1/2 self-center object-contain" onError={() => setFailed(f => ({ ...f, [i]: true }))} />
+      ))}
     </div>
   )
 }
@@ -149,7 +171,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         <div className="flex items-start gap-3">
           {/* Home */}
           <div className="flex-1 flex flex-col items-center gap-3">
-            <TeamBadge src={getTeamImageUrl(match, true)} name={match.home_team_name} />
+            <TeamBadge srcs={getTeamImageUrls(match, true)} name={match.home_team_name} />
             <span className="text-sm font-[var(--font-anybody)] font-semibold text-[var(--color-text-primary)] text-center leading-tight min-h-[2.5rem] flex items-center [font-variation-settings:'wdth'_100]">
               {match.home_team_name}
             </span>
@@ -183,7 +205,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
 
           {/* Away */}
           <div className="flex-1 flex flex-col items-center gap-3">
-            <TeamBadge src={getTeamImageUrl(match, false)} name={match.away_team_name} />
+            <TeamBadge srcs={getTeamImageUrls(match, false)} name={match.away_team_name} />
             <span className="text-sm font-[var(--font-anybody)] font-semibold text-[var(--color-text-primary)] text-center leading-tight min-h-[2.5rem] flex items-center [font-variation-settings:'wdth'_100]">
               {match.away_team_name}
             </span>

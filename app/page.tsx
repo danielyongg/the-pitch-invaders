@@ -54,12 +54,13 @@ export default async function HomePage() {
     .slice(0, 6)
 
   let predictionsMap: Record<string, any> = {}
-  if (user && matches?.length) {
+  const predictableMatchIds = [...matches, ...(liveMatches ?? [])].map(m => m.id)
+  if (user && predictableMatchIds.length) {
     const { data: preds } = await supabase
       .from('predictions')
       .select('match_id, predicted_home, predicted_away, points_awarded')
       .eq('user_id', user.id)
-      .in('match_id', matches.map(m => m.id))
+      .in('match_id', predictableMatchIds)
     if (preds) predictionsMap = Object.fromEntries(preds.map(p => [p.match_id, p]))
   }
 

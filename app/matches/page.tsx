@@ -77,8 +77,18 @@ export default async function MatchesPage({ searchParams }: Props) {
 
   const { data: rawMatches } = await query
 
-  const { data: leagueRows } = await supabase.from('matches').select('league_id')
-  const availableLeagueIds = Array.from(new Set((leagueRows ?? []).map(r => r.league_id)))
+  // Scanning select('league_id') across the whole table hits Supabase's
+  // project-level max-rows cap (1000, not overridable via .limit()) once
+  // total match count grows past it, silently dropping leagues from the
+  // filter. Check each known league's existence directly instead — cheap
+  // (a handful of limit(1) queries) and immune to the row cap.
+  const leagueExistence = await Promise.all(
+    COMPETITIONS.map(async c => {
+      const { data } = await supabase.from('matches').select('id').eq('league_id', c.id).limit(1)
+      return { id: c.id, exists: (data?.length ?? 0) > 0 }
+    })
+  )
+  const availableLeagueIds = leagueExistence.filter(l => l.exists).map(l => l.id)
 
   const isFavorite = (m: { home_team_name: string; away_team_name: string; league_id: number }) =>
     favoriteTeams.includes(m.home_team_name) || favoriteTeams.includes(m.away_team_name) ||

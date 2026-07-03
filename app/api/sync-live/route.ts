@@ -26,6 +26,39 @@ function normalizeTeamName(name: string): string {
   return name.replace(/&/g, 'and')
 }
 
+// Draws go to penalties in knockout rounds, so a tie with no penalty score
+// means no winner yet (still shouldn't happen for a FINISHED_STATUSES match).
+function computeWinner(u: ScoreUpdate): string | null {
+  if (u.homeScore == null || u.awayScore == null) return null
+  if (u.homeScore > u.awayScore) return u.homeTeam
+  if (u.awayScore > u.homeScore) return u.awayTeam
+  if (u.homePenaltyScore != null && u.awayPenaltyScore != null) {
+    if (u.homePenaltyScore > u.awayPenaltyScore) return u.homeTeam
+    if (u.awayPenaltyScore > u.homePenaltyScore) return u.awayTeam
+  }
+  return null
+}
+
+// Next-round knockout fixtures are seeded with a "TeamA/TeamB" placeholder
+// for whichever side isn't decided yet. Once a knockout match finishes,
+// replace the matching placeholder slot with the winner's name.
+async function advanceKnockoutWinner(supabase: ReturnType<typeof createAdminClient>, u: ScoreUpdate): Promise<string | null> {
+  const winner = computeWinner(u)
+  if (!winner) return null
+  const slotA = `${u.homeTeam}/${u.awayTeam}`
+  const slotB = `${u.awayTeam}/${u.homeTeam}`
+  for (const [column, slot] of [['home_team_name', slotA], ['home_team_name', slotB], ['away_team_name', slotA], ['away_team_name', slotB]] as const) {
+    const { error } = await supabase
+      .from('matches')
+      .update({ [column]: winner })
+      .eq('round', 'knockout')
+      .eq('status', 'NS')
+      .eq(column, slot)
+    if (error) return `advance ${slotA}: ${error.message}`
+  }
+  return null
+}
+
 async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, updates: ScoreUpdate[]) {
   let updated = 0
   let scored = 0
@@ -56,6 +89,8 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
         if (scoreError) errors.push(`score ${u.homeTeam} vs ${u.awayTeam}: ${scoreError.message}`)
         else scored++
       }
+      const advanceError = await advanceKnockoutWinner(supabase, u)
+      if (advanceError) errors.push(advanceError)
     }
   }
   return { updated, scored, errors }

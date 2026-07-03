@@ -14,6 +14,31 @@ const LEAGUES = [
 // Wide enough to cover a full Aug–May European season in one request.
 const SEASON_DATE_RANGE = '20260801-20270630'
 
+// ESPN doesn't expose an official matchday/gameweek number for these
+// leagues — reconstruct it by walking events in kickoff order and starting
+// a new round whenever a team would otherwise appear twice in the same
+// round. Assumes `events` is already sorted ascending by kickoff (true for
+// ESPN's scoreboard response). Approximate: a fixture rescheduled far from
+// its original round could throw this off, but there's no better signal available.
+function assignMatchdays(events: any[]): Map<string, number> {
+  const roundOf = new Map<string, number>()
+  let round = 1
+  let teamsInRound = new Set<string>()
+  for (const e of events) {
+    const comp = e.competitions[0]
+    const homeId = comp.competitors.find((c: any) => c.homeAway === 'home')?.team?.id
+    const awayId = comp.competitors.find((c: any) => c.homeAway === 'away')?.team?.id
+    if (teamsInRound.has(homeId) || teamsInRound.has(awayId)) {
+      round++
+      teamsInRound = new Set()
+    }
+    teamsInRound.add(homeId)
+    teamsInRound.add(awayId)
+    roundOf.set(e.id, round)
+  }
+  return roundOf
+}
+
 function mapEspnStatus(type: { name: string; state: string }): string {
   if (type.state === 'pre') return 'NS'
   if (type.name === 'STATUS_POSTPONED' || type.name === 'STATUS_CANCELED') return 'PST'
@@ -49,6 +74,8 @@ export async function GET(request: Request) {
     const events = json.events ?? []
     if (!events.length) continue
 
+    const matchdays = assignMatchdays(events)
+
     const rows = events.map((e: any) => {
       const comp = e.competitions[0]
       const home = comp.competitors.find((c: any) => c.homeAway === 'home')
@@ -67,7 +94,7 @@ export async function GET(request: Request) {
         status: mapEspnStatus(comp.status.type),
         home_score: home?.score != null ? Number(home.score) : null,
         away_score: away?.score != null ? Number(away.score) : null,
-        round: null,
+        round: String(matchdays.get(e.id) ?? ''),
         venue: comp.venue?.fullName ?? null,
       }
     })

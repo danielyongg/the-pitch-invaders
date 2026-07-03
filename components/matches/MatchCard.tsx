@@ -9,6 +9,12 @@ import type { Match, Prediction } from '@/lib/supabase/types'
 const ROUND_LABELS: Record<string, string> = {
   group: 'Group Stage',
   knockout: 'Knockout Stage',
+  round_of_32: 'Round of 32',
+  round_of_16: 'Round of 16',
+  quarterfinal: 'Quarterfinal',
+  semifinal: 'Semifinal',
+  third_place: '3rd Place',
+  final: 'Final',
 }
 
 const LEAGUE_NAMES: Record<number, string> = {

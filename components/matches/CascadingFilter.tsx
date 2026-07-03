@@ -12,12 +12,14 @@ const HIERARCHY: Country[] = [
     name: 'International',
     tournaments: [
       {
+        // Round browsing now lives in the dedicated stage pager on the
+        // matches page (Prev/Next through Group Stage → ... → Final), which
+        // matches the finer-grained round values (round_of_32, etc.) —
+        // phases intentionally left empty to avoid a second, stale
+        // group/knockout-only filter mechanism.
         id: '77',
         name: 'World Cup 2026',
-        phases: [
-          { id: 'group', name: 'Group Stage' },
-          { id: 'knockout', name: 'Knockout Stage' },
-        ],
+        phases: [],
       },
     ],
   },

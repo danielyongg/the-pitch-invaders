@@ -16,12 +16,24 @@ const COUNTRY_TO_LEAGUES: Record<string, number[]> = {
   france: [53],
 }
 
+// World Cup 2026's fixed round sequence, in bracket order. Final and 3rd
+// place share a page since they're both "the last stage" for pagination
+// purposes.
+const WC_STAGES: { id: string; label: string; rounds: string[] }[] = [
+  { id: 'group', label: 'Group Stage', rounds: ['group'] },
+  { id: 'round_of_32', label: 'Round of 32', rounds: ['round_of_32'] },
+  { id: 'round_of_16', label: 'Round of 16', rounds: ['round_of_16'] },
+  { id: 'quarterfinal', label: 'Quarterfinal', rounds: ['quarterfinal'] },
+  { id: 'semifinal', label: 'Semifinal', rounds: ['semifinal'] },
+  { id: 'final', label: 'Final & 3rd Place', rounds: ['final', 'third_place'] },
+]
+
 interface Props {
-  searchParams: Promise<{ country?: string; tournament?: string; phase?: string }>
+  searchParams: Promise<{ country?: string; tournament?: string; phase?: string; matchday?: string; stage?: string }>
 }
 
 export default async function MatchesPage({ searchParams }: Props) {
-  const { country, tournament, phase } = await searchParams
+  const { country, tournament, phase, matchday: matchdayParam, stage: stageParam } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -99,16 +111,14 @@ export default async function MatchesPage({ searchParams }: Props) {
   )
   const availableLeagueIds = leagueExistence.filter(l => l.exists).map(l => l.id)
 
-  const isFavorite = (m: { home_team_name: string; away_team_name: string; league_id: number }) =>
-    favoriteTeams.includes(m.home_team_name) || favoriteTeams.includes(m.away_team_name) ||
-    favoriteLeagues.includes(m.league_id)
-
   // Anything that isn't scheduled, finished, or called off is live — covers
   // provider-specific in-progress text too ("HT", "46'", "2nd Half", etc.)
   const NOT_LIVE_STATUSES = ['NS', 'FT', 'AET', 'PEN', 'CANC', 'PST']
   const isLive = (status: string) => !NOT_LIVE_STATUSES.includes(status)
 
-  // Sort: live first → upcoming asc → finished desc, favorites first within each tier
+  // Sort: live first → upcoming asc → finished desc. Favorites are surfaced
+  // via the dedicated ★ Favorites filter, not by bumping their sort order
+  // here (2026-07-03, user feedback).
   const matches = (rawMatches ?? []).sort((a, b) => {
     const aLive = isLive(a.status)
     const bLive = isLive(b.status)
@@ -118,11 +128,6 @@ export default async function MatchesPage({ searchParams }: Props) {
     if (aLive && !bLive) return -1
     if (!aLive && bLive) return 1
 
-    const aFav = isFavorite(a)
-    const bFav = isFavorite(b)
-    if (aFav && !bFav) return -1
-    if (!aFav && bFav) return 1
-
     if (!aFinished && !bFinished) return new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
     if (aFinished && bFinished) return new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime()
     if (!aFinished && bFinished) return -1
@@ -131,6 +136,59 @@ export default async function MatchesPage({ searchParams }: Props) {
 
   const liveMatches = matches.filter(m => isLive(m.status))
   const restMatches = matches.filter(m => !isLive(m.status))
+
+  // World Cup fixtures stay as one flat list (per user request, 2026-07-03) —
+  // only league matches get paginated by week, since a full season is way
+  // too long to scroll through in one page.
+  const worldCupRest = restMatches.filter(m => m.league_id === 77)
+  const leagueRest = restMatches.filter(m => m.league_id !== 77)
+
+  const stagesPresent = WC_STAGES
+    .map(s => ({ ...s, matches: worldCupRest.filter(m => s.rounds.includes(m.round ?? '')) }))
+    .filter(s => s.matches.length > 0)
+  const defaultStageIdx = stagesPresent.findIndex(s =>
+    s.matches.some(m => m.status !== 'FT' && m.status !== 'AET' && m.status !== 'PEN')
+  )
+  const paramStageIdx = stageParam ? stagesPresent.findIndex(s => s.id === stageParam) : -1
+  const selectedStageIdx = paramStageIdx >= 0 ? paramStageIdx : (defaultStageIdx >= 0 ? defaultStageIdx : stagesPresent.length - 1)
+  const selectedStage = stagesPresent[selectedStageIdx]
+
+  const stageHref = (stageId: string) => {
+    const params = new URLSearchParams()
+    if (country) params.set('country', country)
+    if (tournament) params.set('tournament', tournament)
+    params.set('stage', stageId)
+    return `/matches?${params.toString()}`
+  }
+
+  // Group by matchday number (computed in sync-fixtures, since ESPN doesn't
+  // expose an official gameweek). Not applicable to World Cup, whose
+  // `round` field holds 'group'/'knockout' text instead.
+  const matchdayGroups = new Map<number, typeof leagueRest>()
+  for (const m of leagueRest) {
+    const md = Number(m.round)
+    if (!md) continue
+    if (!matchdayGroups.has(md)) matchdayGroups.set(md, [])
+    matchdayGroups.get(md)!.push(m)
+  }
+  const matchdays = Array.from(matchdayGroups.keys()).sort((a, b) => a - b)
+  const defaultMatchday = matchdays.find(md =>
+    matchdayGroups.get(md)!.some(m => m.status !== 'FT' && m.status !== 'AET' && m.status !== 'PEN')
+  ) ?? matchdays[matchdays.length - 1]
+  const selectedMatchday = matchdayParam && matchdayGroups.has(Number(matchdayParam))
+    ? Number(matchdayParam)
+    : defaultMatchday
+  const selectedMatchdayIdx = selectedMatchday != null ? matchdays.indexOf(selectedMatchday) : -1
+  const matchdayMatches = selectedMatchday != null ? matchdayGroups.get(selectedMatchday)! : []
+
+  const matchdayHref = (md: number) => {
+    const params = new URLSearchParams()
+    if (country) params.set('country', country)
+    if (tournament) params.set('tournament', tournament)
+    if (phase) params.set('phase', phase)
+    params.set('matchday', String(md))
+    return `/matches?${params.toString()}`
+  }
 
   let predictionsMap: Record<string, { predicted_home: number; predicted_away: number; points_awarded: number | null }> = {}
   if (user && matches?.length) {
@@ -191,16 +249,81 @@ export default async function MatchesPage({ searchParams }: Props) {
               </div>
             </section>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {restMatches.map(match => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                prediction={predictionsMap[match.id] as any}
-                userId={user?.id}
-              />
-            ))}
-          </div>
+          {selectedStage && (
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-5">
+                {selectedStageIdx > 0 ? (
+                  <a href={stageHref(stagesPresent[selectedStageIdx - 1].id)} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
+                    ← Previous stage
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
+                    ← Previous stage
+                  </span>
+                )}
+                <span className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
+                  {selectedStage.label}
+                </span>
+                {selectedStageIdx < stagesPresent.length - 1 ? (
+                  <a href={stageHref(stagesPresent[selectedStageIdx + 1].id)} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
+                    Next stage →
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
+                    Next stage →
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {selectedStage.matches.map(match => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionsMap[match.id] as any}
+                    userId={user?.id}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {leagueRest.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                {selectedMatchdayIdx > 0 ? (
+                  <a href={matchdayHref(matchdays[selectedMatchdayIdx - 1])} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
+                    ← Previous matchday
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
+                    ← Previous matchday
+                  </span>
+                )}
+                <span className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
+                  {selectedMatchday != null && `Matchday ${selectedMatchday}`}
+                </span>
+                {selectedMatchdayIdx >= 0 && selectedMatchdayIdx < matchdays.length - 1 ? (
+                  <a href={matchdayHref(matchdays[selectedMatchdayIdx + 1])} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
+                    Next matchday →
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
+                    Next matchday →
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {matchdayMatches.map(match => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionsMap[match.id] as any}
+                    userId={user?.id}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

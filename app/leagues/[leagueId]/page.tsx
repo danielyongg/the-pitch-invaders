@@ -49,15 +49,16 @@ export default async function LeagueDetailPage({ params }: Props) {
           </div>
         ) : (
           <div>
-            <div className="grid grid-cols-[32px_1fr_60px] sm:grid-cols-[60px_1fr_70px_60px_60px_70px_70px_60px] gap-2 sm:gap-3 px-4 sm:px-6 py-3 text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] border-b border-[var(--color-border)] bg-[rgba(174,198,255,0.06)]">
+            <div className="grid grid-cols-[32px_1fr_60px] sm:grid-cols-[60px_1fr_60px_60px_70px_70px_80px_70px] gap-2 sm:gap-3 px-4 sm:px-6 py-3 text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] border-b border-[var(--color-border)] bg-[rgba(174,198,255,0.06)]">
               <span>#</span>
               <span>Player</span>
-              <span className="text-center">Points</span>
-              <span className="text-center hidden sm:block">Exact</span>
-              <span className="text-center hidden sm:block">Correct</span>
-              <span className="text-center hidden sm:block">Exact %</span>
-              <span className="text-center hidden sm:block">Correct %</span>
+              <span className="text-center sm:hidden">Points</span>
               <span className="text-center hidden sm:block">Preds</span>
+              <span className="text-center hidden sm:block">Exact</span>
+              <span className="text-center hidden sm:block">Exact %</span>
+              <span className="text-center hidden sm:block">Correct</span>
+              <span className="text-center hidden sm:block whitespace-nowrap">Correct %</span>
+              <span className="text-center hidden sm:block">Points</span>
             </div>
             {leaderboard.map((entry, idx) => {
               const rank = idx + 1
@@ -67,7 +68,7 @@ export default async function LeagueDetailPage({ params }: Props) {
               return (
                 <div
                   key={entry.user_id}
-                  className={`grid grid-cols-[32px_1fr_60px] sm:grid-cols-[60px_1fr_70px_60px_60px_70px_70px_60px] gap-2 sm:gap-3 px-4 sm:px-6 py-4 items-center border-b border-[var(--glass-05)] last:border-0 transition ${
+                  className={`grid grid-cols-[32px_1fr_60px] sm:grid-cols-[60px_1fr_60px_60px_70px_70px_80px_70px] gap-2 sm:gap-3 px-4 sm:px-6 py-4 items-center border-b border-[var(--glass-05)] last:border-0 transition ${
                     isMe ? 'bg-[rgba(174,198,255,0.05)] border-l-2 border-l-[#aec6ff]' : 'hover:bg-[var(--glass-03)]'
                   }`}
                 >
@@ -83,12 +84,13 @@ export default async function LeagueDetailPage({ params }: Props) {
                       {isMe && <span className="text-xs text-[var(--color-text-muted)] ml-1">(you)</span>}
                     </span>
                   </div>
-                  <span className="font-[var(--font-anybody)] text-base sm:text-xl font-bold text-[var(--color-accent-text)] text-center [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
-                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{entry.exact_scores}</span>
-                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{entry.correct_results}</span>
-                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{exactRate}%</span>
-                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{correctRate}%</span>
+                  <span className="font-[var(--font-anybody)] text-base font-bold text-[var(--color-accent-text)] text-center sm:hidden [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
                   <span className="text-sm text-[var(--color-text-muted)] text-center hidden sm:block">{entry.total_preds}</span>
+                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{entry.exact_scores}</span>
+                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{exactRate}%</span>
+                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{entry.correct_results}</span>
+                  <span className="text-sm text-[var(--color-text-secondary)] text-center hidden sm:block">{correctRate}%</span>
+                  <span className="font-[var(--font-anybody)] text-xl font-bold text-[var(--color-accent-text)] text-center hidden sm:block [font-variation-settings:'wdth'_100]">{entry.total_points}</span>
                 </div>
               )
             })}

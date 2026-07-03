@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import MatchCard, { LEAGUE_NAMES } from '@/components/matches/MatchCard'
+import MatchCard from '@/components/matches/MatchCard'
+import { COMPETITIONS } from '@/lib/competitions'
 
 export default async function PredictPage() {
   const supabase = await createClient()
@@ -36,7 +37,7 @@ export default async function PredictPage() {
     if (leagueId != null) leagueCounts[leagueId] = (leagueCounts[leagueId] ?? 0) + 1
   }
   const topLeagueId = Object.keys(leagueCounts).sort((a, b) => leagueCounts[+b] - leagueCounts[+a])[0]
-  const topLeague = topLeagueId ? (LEAGUE_NAMES[+topLeagueId] ?? 'Unknown') : '—'
+  const topLeague = topLeagueId ? (COMPETITIONS.find(c => c.id === +topLeagueId)?.name ?? 'Unknown') : '—'
 
   const upcoming = predictions?.filter(p => {
     const m = p.matches as any
@@ -75,7 +76,7 @@ export default async function PredictPage() {
           {[
             { label: 'Made', value: totalPredictions },
             { label: 'Results In', value: scoredPredictions },
-            { label: 'Top League', value: topLeague, small: true },
+            { label: 'Most Predicted League', value: topLeague, small: true },
           ].map(s => (
             <div key={s.label}>
               <div className={`font-[var(--font-anybody)] font-extrabold text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] ${s.small ? 'text-lg' : 'text-[32px]'}`}>{s.value}</div>

@@ -84,13 +84,15 @@ export default async function MatchesPage({ searchParams }: Props) {
     favoriteTeams.includes(m.home_team_name) || favoriteTeams.includes(m.away_team_name) ||
     favoriteLeagues.includes(m.league_id)
 
-  const now = new Date()
-  const LIVE_STATUSES = ['1H','HT','2H','ET','BT','P','LIVE']
+  // Anything that isn't scheduled, finished, or called off is live — covers
+  // provider-specific in-progress text too ("HT", "46'", "2nd Half", etc.)
+  const NOT_LIVE_STATUSES = ['NS', 'FT', 'AET', 'PEN', 'CANC', 'PST']
+  const isLive = (status: string) => !NOT_LIVE_STATUSES.includes(status)
 
   // Sort: live first → upcoming asc → finished desc, favorites first within each tier
   const matches = (rawMatches ?? []).sort((a, b) => {
-    const aLive = LIVE_STATUSES.includes(a.status)
-    const bLive = LIVE_STATUSES.includes(b.status)
+    const aLive = isLive(a.status)
+    const bLive = isLive(b.status)
     const aFinished = a.status === 'FT' || a.status === 'AET' || a.status === 'PEN'
     const bFinished = b.status === 'FT' || b.status === 'AET' || b.status === 'PEN'
 
@@ -107,6 +109,9 @@ export default async function MatchesPage({ searchParams }: Props) {
     if (!aFinished && bFinished) return -1
     return 1
   })
+
+  const liveMatches = matches.filter(m => isLive(m.status))
+  const restMatches = matches.filter(m => !isLive(m.status))
 
   let predictionsMap: Record<string, { predicted_home: number; predicted_away: number; points_awarded: number | null }> = {}
   if (user && matches?.length) {
@@ -146,16 +151,38 @@ export default async function MatchesPage({ searchParams }: Props) {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {matches.map(match => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              prediction={predictionsMap[match.id] as any}
-              userId={user?.id}
-            />
-          ))}
-        </div>
+        <>
+          {liveMatches.length > 0 && (
+            <section className="mb-10">
+              <div className="flex items-center gap-3 mb-5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ffb4a9] animate-pulse" />
+                <h2 className="font-[var(--font-anybody)] font-extrabold text-2xl text-[var(--color-live-text)] [font-variation-settings:'wdth'_100]">
+                  Live Now
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {liveMatches.map(match => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionsMap[match.id] as any}
+                    userId={user?.id}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {restMatches.map(match => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                prediction={predictionsMap[match.id] as any}
+                userId={user?.id}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

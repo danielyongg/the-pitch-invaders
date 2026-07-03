@@ -63,7 +63,7 @@ export default async function PredictPage() {
           { label: 'CORRECT RESULTS', value: correctResults, color: 'text-[var(--color-text-primary)]', sub: `${correctRate}% win rate` },
         ].map(s => (
           <div key={s.label} className={`glass-card rounded-2xl p-6 ${s.wide ? 'col-span-2 sm:col-span-1' : ''}`}>
-            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">{s.label}</div>
+            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2 leading-tight min-h-[2em]">{s.label}</div>
             <div className={`font-[var(--font-anybody)] font-extrabold text-[48px] ${s.color} [font-variation-settings:'wdth'_100]`}>{s.value}</div>
             <div className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-2">{s.sub}</div>
           </div>

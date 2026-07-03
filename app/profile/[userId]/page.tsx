@@ -80,12 +80,12 @@ export default async function ProfilePage({ params }: Props) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         {[
           { label: 'TOTAL POINTS', value: stats?.total_points ?? 0, color: 'text-[var(--color-accent-text)]' },
+          { label: 'PREDICTIONS', value: stats?.total_preds ?? 0, color: 'text-[var(--color-text-secondary)]' },
           { label: 'EXACT SCORES', value: stats?.exact_scores ?? 0, color: 'text-[var(--color-text-primary)]' },
           { label: 'CORRECT RESULTS', value: stats?.correct_results ?? 0, color: 'text-[var(--color-text-primary)]' },
-          { label: 'PREDICTIONS', value: stats?.total_preds ?? 0, color: 'text-[var(--color-text-secondary)]' },
         ].map(s => (
           <div key={s.label} className="glass-card rounded-2xl p-5 text-center">
-            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">{s.label}</div>
+            <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2 leading-tight min-h-[2em]">{s.label}</div>
             <div className={`font-[var(--font-anybody)] font-extrabold text-[40px] ${s.color} [font-variation-settings:'wdth'_100]`}>{s.value}</div>
           </div>
         ))}

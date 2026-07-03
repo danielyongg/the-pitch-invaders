@@ -38,10 +38,19 @@ export default async function MatchesPage({ searchParams }: Props) {
   }
   const favoriteCompetitions = COMPETITIONS.filter(c => favoriteLeagues.includes(c.id))
 
+  // Was capped at 200 with no explicit order — fine when the app was
+  // World Cup-only (~100 matches total), but once a full league season
+  // (~380 matches) is in scope, an unordered cap silently truncates
+  // wherever the DB happens to return rows, making the schedule look like
+  // it stops mid-season. Order by kickoff first so any cap truncates at
+  // the far future end instead, and raise the cap comfortably above a
+  // single league's season size (Supabase's project-level row cap is
+  // 1000, so that's the real ceiling regardless of what's requested here).
   let query = supabase
     .from('matches')
     .select('*')
-    .limit(200)
+    .order('kickoff_time', { ascending: true })
+    .limit(1000)
 
   if (country === 'favorites') {
     if (tournament === 'teams') {

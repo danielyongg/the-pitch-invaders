@@ -267,6 +267,56 @@ async function tryFreeFootballApiData(apiKey: string): Promise<ScoreUpdate[] | n
   return updates.filter(u => u.homeTeam && u.awayTeam)
 }
 
+// footballdata.io: fallback #4. Confirmed 2026-07-03 against real World Cup
+// 2026 fixtures (World Cup is league_id 50 on their side). Uses its own key
+// (FOOTBALLDATA_IO_KEY), not the RapidAPI one the other providers share —
+// the `key` param is ignored to keep the same provider-function shape.
+// Known gap: penalty shootout scores aren't exposed anywhere in their match
+// payload (a PEN match just reads as a "draw"), so computeWinner() won't
+// resolve a winner for those here. Acceptable for a last-resort fallback —
+// by the time this runs, an earlier provider has usually already settled it.
+function mapFootballDataIoStatus(m: any): string {
+  if (m.status === 'complete') return 'FT'
+  if (m.status === 'incomplete') return 'NS'
+  // Anything else is presumed in-progress — pass through their label text.
+  return m.status_localized || m.status || 'LIVE'
+}
+
+async function tryFootballDataIo(): Promise<ScoreUpdate[] | null> {
+  const apiKey = process.env.FOOTBALLDATA_IO_KEY
+  if (!apiKey) return null
+  const WORLD_CUP_LEAGUE_ID = 50
+
+  const dates: string[] = []
+  for (let i = -1; i <= 0; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    dates.push(d.toISOString().slice(0, 10))
+  }
+
+  const updates: ScoreUpdate[] = []
+  for (const date of dates) {
+    const url = `https://footballdata.io/api/v1/matches/date/${date}`
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` }, next: { revalidate: 0 } })
+    if (!res.ok) continue
+    const json = await res.json()
+    const matches = json?.data?.matches ?? []
+    if (!Array.isArray(matches)) continue
+
+    for (const m of matches) {
+      if (m.league?.league_id !== WORLD_CUP_LEAGUE_ID) continue
+      updates.push({
+        homeTeam: m.home_team?.team_name,
+        awayTeam: m.away_team?.team_name,
+        status: mapFootballDataIoStatus(m),
+        homeScore: m.score?.home ?? null,
+        awayScore: m.score?.away ?? null,
+      })
+    }
+  }
+  return updates.filter(u => u.homeTeam && u.awayTeam)
+}
+
 export async function GET() {
   const apiKey = process.env.API_FOOTBALL_KEY
   if (!apiKey) return NextResponse.json({ error: 'API_FOOTBALL_KEY not set' }, { status: 500 })
@@ -297,6 +347,7 @@ export async function GET() {
     ['livescore6', tryLivescore6],
     ['flashscore4', tryFlashscore4],
     ['free-football-api-data', tryFreeFootballApiData],
+    ['footballdata.io', tryFootballDataIo],
   ]
 
   for (const [source, fn] of providers) {

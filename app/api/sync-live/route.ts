@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { mapEspnStatus } from '@/lib/espn'
 
 // Server-side cooldown to protect RapidAPI quotas, regardless of how many
 // clients poll this endpoint concurrently.
@@ -317,6 +318,42 @@ async function tryFootballDataIo(): Promise<ScoreUpdate[] | null> {
   return updates.filter(u => u.homeTeam && u.awayTeam)
 }
 
+// ESPN: primary provider (2026-07-03) — free, no key, and unlike
+// free-football-api-data/footballdata.io it exposes penalty shootout scores
+// directly (`shootoutScore`), so knockout winners resolve correctly here
+// without waiting on a fallback.
+async function tryEspn(): Promise<ScoreUpdate[] | null> {
+  const dates: string[] = []
+  for (let i = -1; i <= 0; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    dates.push(d.toISOString().slice(0, 10).replace(/-/g, ''))
+  }
+
+  const updates: ScoreUpdate[] = []
+  for (const date of dates) {
+    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${date}`
+    const res = await fetch(url, { next: { revalidate: 0 } })
+    if (!res.ok) continue
+    const json = await res.json()
+    for (const e of json.events ?? []) {
+      const comp = e.competitions[0]
+      const home = comp.competitors.find((c: any) => c.homeAway === 'home')
+      const away = comp.competitors.find((c: any) => c.homeAway === 'away')
+      updates.push({
+        homeTeam: home?.team?.displayName,
+        awayTeam: away?.team?.displayName,
+        status: mapEspnStatus(comp.status.type, comp.status.displayClock),
+        homeScore: home?.score != null ? Number(home.score) : null,
+        awayScore: away?.score != null ? Number(away.score) : null,
+        homePenaltyScore: home?.shootoutScore != null ? Number(home.shootoutScore) : null,
+        awayPenaltyScore: away?.shootoutScore != null ? Number(away.shootoutScore) : null,
+      })
+    }
+  }
+  return updates.filter(u => u.homeTeam && u.awayTeam)
+}
+
 export async function GET() {
   const apiKey = process.env.API_FOOTBALL_KEY
   if (!apiKey) return NextResponse.json({ error: 'API_FOOTBALL_KEY not set' }, { status: 500 })
@@ -343,6 +380,7 @@ export async function GET() {
   }
 
   const providers: [string, (key: string) => Promise<ScoreUpdate[] | null>][] = [
+    ['espn', tryEspn],
     ['365scores', try365Scores],
     ['livescore6', tryLivescore6],
     ['flashscore4', tryFlashscore4],

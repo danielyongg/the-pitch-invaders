@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { mapEspnStatus } from '@/lib/espn'
 
 // ESPN's public (unofficial, no key needed) site API — confirmed 2026-07-03
 // against live season data for all 5 leagues below.
@@ -37,18 +38,6 @@ function assignMatchdays(events: any[]): Map<string, number> {
     roundOf.set(e.id, round)
   }
   return roundOf
-}
-
-function mapEspnStatus(type: { name: string; state: string }): string {
-  if (type.state === 'pre') return 'NS'
-  if (type.name === 'STATUS_POSTPONED' || type.name === 'STATUS_CANCELED') return 'PST'
-  if (type.state === 'post') {
-    if (type.name === 'STATUS_FULL_TIME_AFTER_EXTRA_TIME' || type.name.includes('EXTRA_TIME')) return 'AET'
-    if (type.name.includes('PENALT')) return 'PEN'
-    return 'FT'
-  }
-  if (type.name === 'STATUS_HALFTIME') return 'HT'
-  return 'LIVE'
 }
 
 export async function GET(request: Request) {
@@ -94,6 +83,8 @@ export async function GET(request: Request) {
         status: mapEspnStatus(comp.status.type),
         home_score: home?.score != null ? Number(home.score) : null,
         away_score: away?.score != null ? Number(away.score) : null,
+        home_penalty_score: home?.shootoutScore != null ? Number(home.shootoutScore) : null,
+        away_penalty_score: away?.shootoutScore != null ? Number(away.shootoutScore) : null,
         round: String(matchdays.get(e.id) ?? ''),
         venue: comp.venue?.fullName ?? null,
       }

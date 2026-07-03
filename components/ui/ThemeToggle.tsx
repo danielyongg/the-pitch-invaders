@@ -23,7 +23,12 @@ export default function ThemeToggle() {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setChoice((localStorage.getItem('theme') as ThemeChoice) || 'system')
+    const stored = (localStorage.getItem('theme') as ThemeChoice) || 'system'
+    setChoice(stored)
+    // Backstop: re-apply in case the beforeInteractive theme-init script
+    // didn't run for this load (data-theme would otherwise be stuck at
+    // whatever the CSS default is, even though localStorage is correct).
+    applyTheme(stored)
   }, [])
 
   useEffect(() => {

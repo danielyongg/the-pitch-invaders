@@ -62,7 +62,7 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
 }
 
 // 365scores: one call returns every competition + match for a given date
-function map365StatusText(text: string): string {
+function map365StatusText(text: string, gameTimeDisplay?: string): string {
   if (!text) return 'NS'
   if (text === 'Scheduled' || text.startsWith('Sched')) return 'NS'
   if (text === 'Half-Time' || text === 'HT') return 'HT'
@@ -70,7 +70,9 @@ function map365StatusText(text: string): string {
   if (text.includes('Penalties')) return 'PEN'
   if (text === 'After ET' || text.includes('Extra Time Ended')) return 'AET'
   if (text === 'Ended' || text === 'FT') return 'FT'
-  return text // live minute / period text, store as-is for display
+  // In-progress period text like "1st Half"/"2nd Half" isn't recognized as
+  // live by MatchCard — gameTimeDisplay ("48'") is, so prefer it when present.
+  return gameTimeDisplay || text
 }
 
 async function try365Scores(apiKey: string): Promise<ScoreUpdate[] | null> {
@@ -102,7 +104,7 @@ async function try365Scores(apiKey: string): Promise<ScoreUpdate[] | null> {
       updates.push({
         homeTeam: g.homeCompetitor?.name,
         awayTeam: g.awayCompetitor?.name,
-        status: map365StatusText(g.shortStatusText ?? g.statusText),
+        status: map365StatusText(g.shortStatusText ?? g.statusText, g.gameTimeDisplay),
         // 365scores sends -1 as a "not started" sentinel instead of null
         homeScore: g.homeCompetitor?.score >= 0 ? g.homeCompetitor.score : null,
         awayScore: g.awayCompetitor?.score >= 0 ? g.awayCompetitor.score : null,
@@ -193,19 +195,22 @@ async function tryFlashscore4(apiKey: string): Promise<ScoreUpdate[] | null> {
   return updates.filter(u => u.homeTeam && u.awayTeam)
 }
 
-// free-football-api-data: fallback #3. Schema unconfirmed against a real
-// live match (endpoint returned an empty list when this was wired up) —
-// ponytail: try common field-name variants defensively; a match missing
-// recognizable team names is dropped rather than guessed at, so a schema
-// mismatch degrades to "no update" instead of corrupting scores. Revisit
-// field names once this has actually seen a live match.
+// free-football-api-data: fallback #3. Schema confirmed 2026-07-03 against a
+// real live match (Switzerland vs Algeria). The `status` field is an object
+// ({ finished, started, cancelled, ongoing, scoreStr }), not a string — and
+// there is no tournament/league name field, only a numeric `leagueId`. So we
+// don't try to filter to World Cup matches here; applyUpdates() already
+// scopes updates to league_id = 77 + team-name match, so non-WC matches from
+// this feed simply update 0 rows.
 function mapFreeFootballStatus(m: any): string {
-  const s = (m.status ?? m.event_status ?? m.time?.status?.short ?? '').toString()
-  if (/^(FT|Finished|Ended)$/i.test(s)) return 'FT'
-  if (/^(AET|After Extra Time)$/i.test(s)) return 'AET'
-  if (/^(PEN|After Penalties)$/i.test(s)) return 'PEN'
-  if (/^(HT|Half.?Time)$/i.test(s)) return 'HT'
-  return s || 'LIVE'
+  const status = m.status
+  if (!status || typeof status !== 'object') return 'LIVE'
+  if (status.cancelled) return 'PST'
+  if (status.finished) return 'FT'
+  if (!status.started) return 'NS'
+  // liveTime.short is already minute/stage text ("46'", "HT") — same format
+  // MatchCard already renders as-is for the 365scores provider.
+  return status.liveTime?.short ?? 'LIVE'
 }
 
 async function tryFreeFootballApiData(apiKey: string): Promise<ScoreUpdate[] | null> {
@@ -217,12 +222,7 @@ async function tryFreeFootballApiData(apiKey: string): Promise<ScoreUpdate[] | n
   const matches = json?.response?.live ?? json?.response ?? []
   if (!Array.isArray(matches)) return null
 
-  const wcMatches = matches.filter((m: any) => {
-    const name = (m.tournament?.name ?? m.league?.name ?? m.competition?.name ?? '').toLowerCase()
-    return name.includes('world cup') && !name.includes('women') && !name.includes('u20') && !name.includes('u17')
-  })
-
-  const updates: ScoreUpdate[] = wcMatches.map((m: any) => ({
+  const updates: ScoreUpdate[] = matches.map((m: any) => ({
     homeTeam: m.home?.name ?? m.homeTeam?.name ?? m.teams?.home?.name,
     awayTeam: m.away?.name ?? m.awayTeam?.name ?? m.teams?.away?.name,
     status: mapFreeFootballStatus(m),

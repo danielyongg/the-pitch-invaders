@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import EditProfileForm from '@/components/profile/EditProfileForm'
 import Avatar from '@/components/ui/Avatar'
+import { COMPETITIONS } from '@/lib/competitions'
 
 interface Props {
   params: Promise<{ userId: string }>
@@ -35,13 +36,26 @@ export default async function ProfilePage({ params }: Props) {
   }
 
   const { data: stats } = await supabase.from('leaderboard_cache').select('*').eq('user_id', userId).maybeSingle()
-  const { data: recentPreds } = await supabase
+
+  // RLS only surfaces another user's predictions once their match has kicked
+  // off, so "Made" naturally reflects only what's visible to the viewer.
+  const { data: allPreds } = await supabase
     .from('predictions')
     .select('*, matches(*)')
     .eq('user_id', userId)
-    .not('points_awarded', 'is', null)
     .order('updated_at', { ascending: false })
-    .limit(10)
+
+  const totalPredictions = allPreds?.length ?? 0
+  const scoredPredictions = allPreds?.filter(p => p.points_awarded != null).length ?? 0
+  const leagueCounts: Record<number, number> = {}
+  for (const p of allPreds ?? []) {
+    const leagueId = (p.matches as any)?.league_id
+    if (leagueId != null) leagueCounts[leagueId] = (leagueCounts[leagueId] ?? 0) + 1
+  }
+  const topLeagueId = Object.keys(leagueCounts).sort((a, b) => leagueCounts[+b] - leagueCounts[+a])[0]
+  const topLeague = topLeagueId ? (COMPETITIONS.find(c => c.id === +topLeagueId)?.name ?? 'Unknown') : '—'
+
+  const recentPreds = (allPreds ?? []).filter(p => p.points_awarded != null).slice(0, 10)
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">
@@ -75,6 +89,23 @@ export default async function ProfilePage({ params }: Props) {
             <div className={`font-[var(--font-anybody)] font-extrabold text-[40px] ${s.color} [font-variation-settings:'wdth'_100]`}>{s.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* Prediction activity */}
+      <div className="glass-card rounded-2xl p-6 mb-10">
+        <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-4">Prediction Activity</div>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Made', value: totalPredictions },
+            { label: 'Results In', value: scoredPredictions },
+            { label: 'Most Predicted League', value: topLeague },
+          ].map(s => (
+            <div key={s.label}>
+              <div className="font-[var(--font-anybody)] font-extrabold text-[32px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] truncate">{s.value}</div>
+              <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Recent predictions */}

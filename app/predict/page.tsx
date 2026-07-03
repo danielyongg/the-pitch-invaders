@@ -76,10 +76,10 @@ export default async function PredictPage() {
           {[
             { label: 'Made', value: totalPredictions },
             { label: 'Results In', value: scoredPredictions },
-            { label: 'Most Predicted League', value: topLeague, small: true },
+            { label: 'Most Predicted League', value: topLeague },
           ].map(s => (
             <div key={s.label}>
-              <div className={`font-[var(--font-anybody)] font-extrabold text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] ${s.small ? 'text-lg' : 'text-[32px]'}`}>{s.value}</div>
+              <div className="font-[var(--font-anybody)] font-extrabold text-[32px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] truncate">{s.value}</div>
               <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-1">{s.label}</div>
             </div>
           ))}

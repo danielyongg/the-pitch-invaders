@@ -254,11 +254,11 @@ export default async function MatchesPage({ searchParams }: Props) {
               <div className="flex items-center justify-between mb-5">
                 {selectedStageIdx > 0 ? (
                   <a href={stageHref(stagesPresent[selectedStageIdx - 1].id)} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
-                    ← Previous stage
+                    ← Previous
                   </a>
                 ) : (
                   <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
-                    ← Previous stage
+                    ← Previous
                   </span>
                 )}
                 <span className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
@@ -266,11 +266,11 @@ export default async function MatchesPage({ searchParams }: Props) {
                 </span>
                 {selectedStageIdx < stagesPresent.length - 1 ? (
                   <a href={stageHref(stagesPresent[selectedStageIdx + 1].id)} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
-                    Next stage →
+                    Next →
                   </a>
                 ) : (
                   <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
-                    Next stage →
+                    Next →
                   </span>
                 )}
               </div>
@@ -292,11 +292,11 @@ export default async function MatchesPage({ searchParams }: Props) {
               <div className="flex items-center justify-between mb-5">
                 {selectedMatchdayIdx > 0 ? (
                   <a href={matchdayHref(matchdays[selectedMatchdayIdx - 1])} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
-                    ← Previous matchday
+                    ← Previous
                   </a>
                 ) : (
                   <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
-                    ← Previous matchday
+                    ← Previous
                   </span>
                 )}
                 <span className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
@@ -304,11 +304,11 @@ export default async function MatchesPage({ searchParams }: Props) {
                 </span>
                 {selectedMatchdayIdx >= 0 && selectedMatchdayIdx < matchdays.length - 1 ? (
                   <a href={matchdayHref(matchdays[selectedMatchdayIdx + 1])} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">
-                    Next matchday →
+                    Next →
                   </a>
                 ) : (
                   <span className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] opacity-30">
-                    Next matchday →
+                    Next →
                   </span>
                 )}
               </div>

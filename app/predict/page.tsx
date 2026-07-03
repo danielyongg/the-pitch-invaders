@@ -56,13 +56,13 @@ export default async function PredictPage() {
       </div>
 
       {/* Stats bento */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
         {[
-          { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[var(--color-accent-text)]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week` },
+          { label: 'TOTAL POINTS', value: totalPoints, color: 'text-[var(--color-accent-text)]', sub: `${pointsThisWeek >= 0 ? '+' : ''}${pointsThisWeek} this week`, wide: true },
           { label: 'EXACT SCORES', value: exactScores, color: 'text-[var(--color-text-primary)]', sub: `${exactRate}% win rate` },
           { label: 'CORRECT RESULTS', value: correctResults, color: 'text-[var(--color-text-primary)]', sub: `${correctRate}% win rate` },
         ].map(s => (
-          <div key={s.label} className="glass-card rounded-2xl p-6">
+          <div key={s.label} className={`glass-card rounded-2xl p-6 ${s.wide ? 'col-span-2 sm:col-span-1' : ''}`}>
             <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-2">{s.label}</div>
             <div className={`font-[var(--font-anybody)] font-extrabold text-[48px] ${s.color} [font-variation-settings:'wdth'_100]`}>{s.value}</div>
             <div className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-2">{s.sub}</div>
@@ -72,14 +72,14 @@ export default async function PredictPage() {
 
       <div className="glass-card rounded-2xl p-6 mb-10">
         <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-4">Prediction Activity</div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {[
             { label: 'Made', value: totalPredictions },
             { label: 'Results In', value: scoredPredictions },
-            { label: 'Most Predicted League', value: topLeague },
+            { label: 'Most Predicted League', value: topLeague, wide: true },
           ].map(s => (
-            <div key={s.label}>
-              <div className="font-[var(--font-anybody)] font-extrabold text-[32px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] truncate">{s.value}</div>
+            <div key={s.label} className={s.wide ? 'col-span-2 sm:col-span-1' : ''}>
+              <div className={`font-[var(--font-anybody)] font-extrabold text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] ${s.wide ? 'text-xl sm:text-[32px]' : 'text-[32px]'}`}>{s.value}</div>
               <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-1">{s.label}</div>
             </div>
           ))}

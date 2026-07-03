@@ -94,14 +94,14 @@ export default async function ProfilePage({ params }: Props) {
       {/* Prediction activity */}
       <div className="glass-card rounded-2xl p-6 mb-10">
         <div className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-4">Prediction Activity</div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {[
             { label: 'Made', value: totalPredictions },
             { label: 'Results In', value: scoredPredictions },
-            { label: 'Most Predicted League', value: topLeague },
+            { label: 'Most Predicted League', value: topLeague, wide: true },
           ].map(s => (
-            <div key={s.label}>
-              <div className="font-[var(--font-anybody)] font-extrabold text-[32px] text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] truncate">{s.value}</div>
+            <div key={s.label} className={s.wide ? 'col-span-2 sm:col-span-1' : ''}>
+              <div className={`font-[var(--font-anybody)] font-extrabold text-[var(--color-text-primary)] [font-variation-settings:'wdth'_100] ${s.wide ? 'text-xl sm:text-[32px]' : 'text-[32px]'}`}>{s.value}</div>
               <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] mt-1">{s.label}</div>
             </div>
           ))}
@@ -117,19 +117,23 @@ export default async function ProfilePage({ params }: Props) {
               const match = p.matches as any
               const pts = p.points_awarded
               return (
-                <div key={p.id} className="glass-card rounded-xl px-5 py-4 flex items-center gap-4">
-                  <div className="flex-1 text-sm text-[var(--color-text-primary)]">{match?.home_team_name} vs {match?.away_team_name}</div>
-                  <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
-                    Prediction: <span className="text-[var(--color-text-primary)] font-bold">{p.predicted_home}–{p.predicted_away}</span>
+                <div key={p.id} className="glass-card rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="flex items-start justify-between gap-3 sm:contents">
+                    <div className="flex-1 text-sm text-[var(--color-text-primary)]">{match?.home_team_name} vs {match?.away_team_name}</div>
+                    <span className={`font-[var(--font-anybody)] font-bold text-sm text-right [font-variation-settings:'wdth'_100] sm:order-last sm:w-8 ${pts === 3 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[var(--color-live-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                      +{pts}
+                    </span>
                   </div>
-                  {match?.home_score != null && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
                     <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
-                      Result: <span className="text-[var(--color-text-primary)] font-bold">{match.home_score}–{match.away_score}</span>
+                      Prediction: <span className="text-[var(--color-text-primary)] font-bold">{p.predicted_home}–{p.predicted_away}</span>
                     </div>
-                  )}
-                  <span className={`font-[var(--font-anybody)] font-bold text-sm w-8 text-right [font-variation-settings:'wdth'_100] ${pts === 3 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[var(--color-live-text)]' : 'text-[var(--color-text-muted)]'}`}>
-                    +{pts}
-                  </span>
+                    {match?.home_score != null && (
+                      <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
+                        Result: <span className="text-[var(--color-text-primary)] font-bold">{match.home_score}–{match.away_score}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             })}

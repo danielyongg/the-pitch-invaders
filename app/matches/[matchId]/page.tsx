@@ -61,7 +61,7 @@ function PlayerChip({ p }: { p: any }) {
         {!red && yellow > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-yellow-400 rounded-sm border border-white" />}
         {goals > 0 && <span className="absolute -bottom-1 -right-1 text-[10px]">⚽</span>}
       </div>
-      <span className="text-[10px] text-center text-[var(--color-text-secondary)] leading-tight">{p.athlete.shortName ?? p.athlete.displayName}</span>
+      <span className="text-[10px] text-center text-white leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">{p.athlete.shortName ?? p.athlete.displayName}</span>
     </div>
   )
 }
@@ -284,9 +284,9 @@ export default async function MatchDetailPage({ params }: Props) {
                 {[homeRoster, awayRoster].map((roster, idx) => roster?.roster?.length && (
                   <div key={idx}>
                     <div className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{roster.team.displayName} — {roster.formation ?? '—'}</div>
-                    <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse gap-4 mt-3">
+                    <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse justify-evenly gap-4 mt-3 min-h-[420px]">
                       {pitchRows(roster.roster.filter((p: any) => p.starter)).map((row, rIdx) => (
-                        <div key={rIdx} className="flex justify-evenly">
+                        <div key={rIdx} className="flex justify-center gap-6 sm:gap-10">
                           {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} />)}
                         </div>
                       ))}

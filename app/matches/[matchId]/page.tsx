@@ -206,7 +206,7 @@ export default async function MatchDetailPage({ params }: Props) {
       <div className="glass-card rounded-2xl p-8 mt-4 mb-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 flex flex-col items-center gap-2">
-            {homeLogo && <img src={homeLogo} alt={m.home_team_name} className="w-16 h-16 object-contain" />}
+            {homeLogo && <img src={homeLogo} alt={m.home_team_name} className={m.league_id === 77 ? 'w-16 h-11 object-cover rounded' : 'w-16 h-16 object-contain'} />}
             <span className="font-[var(--font-anybody)] font-bold text-center text-[var(--color-text-primary)]">{m.home_team_name}</span>
           </div>
           <div className="text-center">
@@ -222,7 +222,7 @@ export default async function MatchDetailPage({ params }: Props) {
             {venue && <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">{venue}</div>}
           </div>
           <div className="flex-1 flex flex-col items-center gap-2">
-            {awayLogo && <img src={awayLogo} alt={m.away_team_name} className="w-16 h-16 object-contain" />}
+            {awayLogo && <img src={awayLogo} alt={m.away_team_name} className={m.league_id === 77 ? 'w-16 h-11 object-cover rounded' : 'w-16 h-16 object-contain'} />}
             <span className="font-[var(--font-anybody)] font-bold text-center text-[var(--color-text-primary)]">{m.away_team_name}</span>
           </div>
         </div>
@@ -282,12 +282,12 @@ export default async function MatchDetailPage({ params }: Props) {
           {timelineEvents.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Timeline</h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {timelineEvents.map((e: any) => (
-                  <div key={e.id} className="flex items-center gap-3 text-sm">
-                    <span className="w-10 text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">{e.clock?.displayValue || '-'}</span>
-                    <span>{eventIcon(e.type.type)}</span>
-                    <span className="text-[var(--color-text-primary)]">
+                  <div key={e.id} className="grid grid-cols-[2.5rem_1.5rem_1fr] gap-2 text-sm">
+                    <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] pt-0.5">{e.clock?.displayValue || '-'}</span>
+                    <span className="pt-0.5">{eventIcon(e.type.type)}</span>
+                    <span className="text-[var(--color-text-primary)] leading-snug">
                       {timelineLabel(e)} <span className="text-[var(--color-text-secondary)]">— {e.team?.displayName}</span>
                     </span>
                   </div>
@@ -347,13 +347,13 @@ export default async function MatchDetailPage({ params }: Props) {
                   const leftName = homeIsUsHome ? m.home_team_name : m.away_team_name
                   const rightName = homeIsUsHome ? m.away_team_name : m.home_team_name
                   return (
-                    <div key={ev.id} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm">
-                      <span className="text-[var(--color-text-secondary)] text-right truncate">{leftName}</span>
-                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums whitespace-nowrap px-2">{ev.homeTeamScore} – {ev.awayTeamScore}</span>
-                      <span className="text-[var(--color-text-secondary)] truncate flex items-center justify-between gap-3">
-                        {rightName}
-                        <span className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                      </span>
+                    <div key={ev.id} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 py-1.5 border-b border-[var(--glass-05)] last:border-0 text-sm">
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex-1">
+                        <span className="text-[var(--color-text-secondary)] text-right truncate">{leftName}</span>
+                        <span className="font-bold text-[var(--color-text-primary)] tabular-nums whitespace-nowrap px-2">{ev.homeTeamScore} – {ev.awayTeamScore}</span>
+                        <span className="text-[var(--color-text-secondary)] truncate">{rightName}</span>
+                      </div>
+                      <span className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] text-center sm:text-right whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
                   )
                 })}

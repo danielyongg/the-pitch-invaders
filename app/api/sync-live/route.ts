@@ -40,9 +40,11 @@ function computeWinner(u: ScoreUpdate): string | null {
   return null
 }
 
-// Next-round knockout fixtures are seeded with a "TeamA/TeamB" placeholder
-// for whichever side isn't decided yet. Once a knockout match finishes,
-// replace the matching placeholder slot with the winner's name.
+// Round of 32 fixtures are seeded with a "TeamA/TeamB" placeholder for
+// whichever side isn't decided yet (both teams come from group stage
+// runner-up/winner slots, so there's no bracket seed number yet). Once
+// a knockout match finishes, replace the matching placeholder slot with
+// the winner's name.
 async function advanceKnockoutWinner(supabase: ReturnType<typeof createAdminClient>, u: ScoreUpdate): Promise<string | null> {
   const winner = computeWinner(u)
   if (!winner) return null
@@ -52,9 +54,52 @@ async function advanceKnockoutWinner(supabase: ReturnType<typeof createAdminClie
     const { error } = await supabase
       .from('matches')
       .update({ [column]: winner })
-      .eq('round', 'knockout')
       .eq(column, slot)
     if (error) return `advance ${slotA}: ${error.message}`
+  }
+  return null
+}
+
+// Round of 16 onward are seeded with "Winner EF N" / "Winner QF N" /
+// "Winner SF N" / "Loser SF N" placeholders, where N is the match's 1-based
+// position within its round ordered by kickoff time (standard bracket
+// seeding — e.g. quarterfinal 1 is always Winner EF 1 vs Winner EF 2).
+// Once a match in one of these rounds finishes, resolve its own bracket
+// position and patch every fixture referencing "<Winner|Loser> <TOKEN> <N>".
+const BRACKET_TOKEN: Record<string, string> = {
+  round_of_16: 'EF',
+  quarterfinal: 'QF',
+  semifinal: 'SF',
+}
+
+async function advanceBracketSeed(supabase: ReturnType<typeof createAdminClient>, matchId: string, u: ScoreUpdate): Promise<string | null> {
+  const { data: match, error: matchError } = await supabase.from('matches').select('round, kickoff_time').eq('id', matchId).single()
+  if (matchError || !match) return matchError ? `advance seed lookup: ${matchError.message}` : null
+  const token = BRACKET_TOKEN[match.round ?? '']
+  if (!token) return null
+
+  const winner = computeWinner(u)
+  if (!winner) return null
+  const loser = winner === u.homeTeam ? u.awayTeam : u.homeTeam
+
+  const { data: roundMatches, error: roundError } = await supabase
+    .from('matches')
+    .select('id')
+    .eq('league_id', 77)
+    .eq('round', match.round)
+    .order('kickoff_time', { ascending: true })
+  if (roundError) return `advance seed round lookup: ${roundError.message}`
+  const position = (roundMatches ?? []).findIndex(m => m.id === matchId) + 1
+  if (position <= 0) return null
+
+  for (const [column, placeholder, name] of [
+    ['home_team_name', `Winner ${token} ${position}`, winner],
+    ['away_team_name', `Winner ${token} ${position}`, winner],
+    ['home_team_name', `Loser ${token} ${position}`, loser],
+    ['away_team_name', `Loser ${token} ${position}`, loser],
+  ] as const) {
+    const { error } = await supabase.from('matches').update({ [column]: name }).eq(column, placeholder)
+    if (error) return `advance seed ${placeholder}: ${error.message}`
   }
   return null
 }
@@ -88,6 +133,9 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
         const { error: scoreError } = await supabase.rpc('score_match_predictions', { p_match_id: row.id })
         if (scoreError) errors.push(`score ${u.homeTeam} vs ${u.awayTeam}: ${scoreError.message}`)
         else scored++
+
+        const seedError = await advanceBracketSeed(supabase, row.id, u)
+        if (seedError) errors.push(seedError)
       }
       const advanceError = await advanceKnockoutWinner(supabase, u)
       if (advanceError) errors.push(advanceError)

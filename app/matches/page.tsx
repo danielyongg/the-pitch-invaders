@@ -161,15 +161,28 @@ export default async function MatchesPage({ searchParams }: Props) {
     return `/matches?${params.toString()}`
   }
 
+  // Club Friendlies has no official gameweek concept (pre-season tours, not
+  // a round-robin season) — paginate by calendar week instead of matchday.
+  const FRIENDLY_LEAGUE_ID = 100
+  const isFriendlies = leagueRest.length > 0 && leagueRest.every(m => m.league_id === FRIENDLY_LEAGUE_ID)
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000
+  const weekBucket = (kickoff: string) => Math.floor(new Date(kickoff).getTime() / msPerWeek)
+
   // Group by matchday number (computed in sync-fixtures, since ESPN doesn't
   // expose an official gameweek). Not applicable to World Cup, whose
   // `round` field holds 'group'/'knockout' text instead.
   const matchdayGroups = new Map<number, typeof leagueRest>()
   for (const m of leagueRest) {
-    const md = Number(m.round)
+    const md = isFriendlies ? weekBucket(m.kickoff_time) : Number(m.round)
     if (!md) continue
     if (!matchdayGroups.has(md)) matchdayGroups.set(md, [])
     matchdayGroups.get(md)!.push(m)
+  }
+  const weekLabel = (md: number) => {
+    const group = matchdayGroups.get(md) ?? []
+    const dates = group.map(m => new Date(m.kickoff_time).getTime())
+    const fmt = (t: number) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    return `${fmt(Math.min(...dates))} – ${fmt(Math.max(...dates))}`
   }
   const matchdays = Array.from(matchdayGroups.keys()).sort((a, b) => a - b)
   const defaultMatchday = matchdays.find(md =>
@@ -299,7 +312,7 @@ export default async function MatchesPage({ searchParams }: Props) {
                   </span>
                 )}
                 <span className="text-sm text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
-                  {selectedMatchday != null && `Matchday ${selectedMatchday}`}
+                  {selectedMatchday != null && (isFriendlies ? weekLabel(selectedMatchday) : `Matchday ${selectedMatchday}`)}
                 </span>
                 {selectedMatchdayIdx >= 0 && selectedMatchdayIdx < matchdays.length - 1 ? (
                   <a href={matchdayHref(matchdays[selectedMatchdayIdx + 1])} className="px-4 py-2 rounded-full text-sm font-[var(--font-jetbrains)] tracking-wide bg-[var(--color-input)] border border-[var(--glass-05)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border-strong)]">

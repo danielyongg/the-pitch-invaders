@@ -16,11 +16,22 @@ export function mapEspnStatus(type: { name: string; state: string }, displayCloc
   return displayClock || 'LIVE'
 }
 
+// A handful of national teams ESPN spells outright differently from what's
+// stored in the DB (not just punctuation) — e.g. ESPN calls the US team
+// "United States" where our data (and MatchCard's own flag lookup) uses
+// "USA". Map both known spellings to one canonical form.
+const TEAM_ALIASES: Record<string, string> = {
+  'united states': 'usa',
+  'czech republic': 'czechia',
+  'turkey': 'turkiye',
+}
+
 // Providers spell some team names differently than what's stored in the DB
 // (e.g. "Bosnia & Herzegovina" vs "Bosnia and Herzegovina") — normalize both
 // sides the same way before matching.
 export function normalizeTeamName(name: string): string {
-  return name.replace(/&/g, 'and')
+  const withAnd = name.replace(/&/g, 'and')
+  return TEAM_ALIASES[withAnd.toLowerCase()] ?? withAnd
 }
 
 // ESPN's site-api scoreboard slug per internal league_id — the one place

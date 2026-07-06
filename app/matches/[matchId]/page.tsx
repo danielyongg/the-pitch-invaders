@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { fetchEspnSummary } from '@/lib/espn'
+import { fetchEspnSummary, normalizeTeamName } from '@/lib/espn'
 import type { Match } from '@/lib/supabase/types'
 
 interface Props {
@@ -196,6 +196,19 @@ export default async function MatchDetailPage({ params }: Props) {
 
   const h2hEvents: any[] = summary?.headToHeadGames?.[0]?.events ?? []
 
+  // ESPN tags each news item with the teams it's about — filter the
+  // competition-wide feed down to ones actually mentioning either side,
+  // since the raw feed is the same for every match in the competition.
+  const homeNameNorm = normalizeTeamName(m.home_team_name).toLowerCase()
+  const awayNameNorm = normalizeTeamName(m.away_team_name).toLowerCase()
+  const relatedNews: any[] = (summary?.news?.articles ?? []).filter((a: any) =>
+    (a.categories ?? []).some((c: any) => {
+      if (c.type !== 'team' || !c.description) return false
+      const name = normalizeTeamName(c.description).toLowerCase()
+      return name === homeNameNorm || name === awayNameNorm
+    })
+  )
+
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">
       <a href="/matches" className="text-sm text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide">
@@ -357,6 +370,28 @@ export default async function MatchDetailPage({ params }: Props) {
                     </div>
                   )
                 })}
+              </div>
+            </section>
+          )}
+
+          {/* Related news */}
+          {relatedNews.length > 0 && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Related News</h2>
+              <div className="space-y-4">
+                {relatedNews.map((a: any) => (
+                  <a key={a.id} href={a.links?.web?.href} target="_blank" rel="noopener noreferrer" className="flex gap-3 group">
+                    {a.images?.[0]?.url && (
+                      <img src={a.images[0].url} alt="" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent-text)] leading-snug">{a.headline}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">
+                        {new Date(a.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </div>
+                    </div>
+                  </a>
+                ))}
               </div>
             </section>
           )}

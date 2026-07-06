@@ -21,6 +21,11 @@ const HIERARCHY: Country[] = [
         name: 'World Cup 2026',
         phases: [],
       },
+      {
+        id: '100',
+        name: 'Club Friendlies',
+        phases: [],
+      },
     ],
   },
   {

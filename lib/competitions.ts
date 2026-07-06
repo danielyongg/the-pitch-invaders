@@ -5,4 +5,5 @@ export const COMPETITIONS: { id: number; name: string }[] = [
   { id: 54, name: 'Bundesliga' },
   { id: 55, name: 'Serie A' },
   { id: 53, name: 'Ligue 1' },
+  { id: 100, name: 'Club Friendlies' },
 ]

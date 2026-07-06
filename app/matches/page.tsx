@@ -8,7 +8,7 @@ import { COMPETITIONS } from '@/lib/competitions'
 import { Suspense } from 'react'
 
 const COUNTRY_TO_LEAGUES: Record<string, number[]> = {
-  international: [77],
+  international: [77, 100],
   england: [47],
   spain: [87],
   germany: [54],

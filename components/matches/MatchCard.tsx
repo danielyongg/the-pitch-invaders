@@ -24,6 +24,7 @@ const LEAGUE_NAMES: Record<number, string> = {
   54: 'Bundesliga',
   55: 'Serie A',
   53: 'Ligue 1',
+  100: 'Club Friendlies',
 }
 
 // Each league's primary brand color, for the header pill
@@ -34,6 +35,7 @@ const LEAGUE_COLORS: Record<number, { bg: string; text: string }> = {
   54: { bg: '#7a0017', text: '#ffb3bd' },
   55: { bg: '#024494', text: '#a9d4ff' },
   53: { bg: '#091c3e', text: '#9fc1ff' },
+  100: { bg: '#3a3a3a', text: '#d4d4d4' },
 }
 
 const COUNTRY_CODE: Record<string, string> = {

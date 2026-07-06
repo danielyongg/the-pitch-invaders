@@ -53,7 +53,6 @@ async function advanceKnockoutWinner(supabase: ReturnType<typeof createAdminClie
       .from('matches')
       .update({ [column]: winner })
       .eq('round', 'knockout')
-      .eq('status', 'NS')
       .eq(column, slot)
     if (error) return `advance ${slotA}: ${error.message}`
   }

@@ -239,7 +239,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           </div>
         ) : userId ? (
           <p className="text-xs text-center text-[var(--color-text-muted)] font-[var(--font-jetbrains)] tracking-wide py-1">
-            {locked ? 'Predictions closed before kickoff' : 'No prediction yet'}
+            {isFinished ? "You didn't make a prediction for this match" : locked ? 'Predictions closed before kickoff' : 'No prediction yet'}
           </p>
         ) : (
           <p className="text-xs text-center text-[var(--color-text-muted)] py-1">

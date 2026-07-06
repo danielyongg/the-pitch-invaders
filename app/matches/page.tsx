@@ -191,12 +191,11 @@ export default async function MatchesPage({ searchParams }: Props) {
   }
 
   let predictionsMap: Record<string, { predicted_home: number; predicted_away: number; points_awarded: number | null }> = {}
-  if (user && matches?.length) {
+  if (user) {
     const { data: preds } = await supabase
       .from('predictions')
       .select('match_id, predicted_home, predicted_away, points_awarded')
       .eq('user_id', user.id)
-      .in('match_id', matches.map(m => m.id))
     if (preds) predictionsMap = Object.fromEntries(preds.map(p => [p.match_id, p]))
   }
 

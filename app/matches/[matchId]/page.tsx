@@ -15,6 +15,57 @@ function fmtDate(iso: string) {
   })
 }
 
+const GOAL_TYPES = ['goal', 'goal---header', 'goal---volley', 'penalty---scored', 'own-goal']
+
+// Position codes ESPN assigns per player, ordered left-to-right across the
+// pitch. Covers the common back-4/back-3, double-pivot, and front-3/4
+// shapes; anything unlisted falls back to the middle of its row.
+const POSITION_ORDER: Record<string, number> = {
+  'LB': 0, 'LWB': 0, 'LM': 0, 'LW': 0, 'AM-L': 0, 'CD-L': 1, 'CB-L': 1, 'DM-L': 1, 'CM-L': 1,
+  'CD': 1.5, 'CB': 1.5, 'SW': 1.5, 'DM': 1.5, 'CM': 1.5, 'AM': 1.5, 'F': 1.5, 'ST': 1.5, 'CF': 1.5,
+  'CD-R': 2, 'CB-R': 2, 'DM-R': 2, 'CM-R': 2, 'RB': 3, 'RWB': 3, 'RM': 3, 'RW': 3, 'AM-R': 3,
+}
+
+// Groups a starting XI into pitch rows (GK → defense → mid → attacking mid
+// → forwards), ordered left-to-right within each row. ESPN doesn't give
+// exact x/y coordinates for outfield players, so the row split is inferred
+// from the position abbreviation rather than pixel-perfect placement.
+function pitchRows(roster: any[]): any[][] {
+  const rowOf = (abbr: string) => {
+    if (abbr === 'G') return 0
+    if (/^(CD|CB|LB|RB|WB)/.test(abbr)) return 1
+    if (/^(DM|CM|LM|RM)$|^(DM|CM)-/.test(abbr)) return 2
+    if (/^AM/.test(abbr)) return 3
+    return 4
+  }
+  const rows: any[][] = [[], [], [], [], []]
+  for (const p of roster) {
+    const abbr = p.position?.abbreviation ?? ''
+    rows[rowOf(abbr)].push(p)
+  }
+  for (const row of rows) {
+    row.sort((a, b) => (POSITION_ORDER[a.position?.abbreviation] ?? 1.5) - (POSITION_ORDER[b.position?.abbreviation] ?? 1.5))
+  }
+  return rows.filter(r => r.length > 0)
+}
+
+function PlayerChip({ p }: { p: any }) {
+  const goals = p.stats?.find((s: any) => s.name === 'totalGoals')?.value ?? 0
+  const yellow = p.stats?.find((s: any) => s.name === 'yellowCards')?.value ?? 0
+  const red = p.stats?.find((s: any) => s.name === 'redCards')?.value ?? 0
+  return (
+    <div className="flex flex-col items-center gap-1 w-16">
+      <div className="relative w-9 h-9 rounded-full bg-[#aec6ff] text-[#002e6a] flex items-center justify-center font-bold text-sm">
+        {p.jersey}
+        {red > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-red-600 rounded-sm border border-white" />}
+        {!red && yellow > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-yellow-400 rounded-sm border border-white" />}
+        {goals > 0 && <span className="absolute -bottom-1 -right-1 text-[10px]">⚽</span>}
+      </div>
+      <span className="text-[10px] text-center text-[var(--color-text-secondary)] leading-tight">{p.athlete.shortName ?? p.athlete.displayName}</span>
+    </div>
+  )
+}
+
 export default async function MatchDetailPage({ params }: Props) {
   const { matchId } = await params
   const supabase = await createClient()
@@ -24,30 +75,100 @@ export default async function MatchDetailPage({ params }: Props) {
 
   const summary = await fetchEspnSummary(m.league_id, m.api_football_id, m.kickoff_time, m.home_team_name, m.away_team_name)
 
-  // Our own home_team_id/away_team_id can be stale for the same reason
-  // api_football_id can be (World Cup rows predate the ESPN sync) — derive
-  // the real ESPN home team id from the summary response itself instead of
-  // trusting ours, so every lookup below stays internally consistent.
+  // Our own home_team_id/away_team_id (and home_team_logo/away_team_logo for
+  // World Cup rows) can be stale for the same reason api_football_id can be
+  // — derive everything from the summary response itself instead.
   const espnCompetitors: any[] = summary?.header?.competitions?.[0]?.competitors ?? []
   const espnHomeId = espnCompetitors.find((c: any) => c.homeAway === 'home')?.team?.id
   const isHomeId = (id: string | number) => String(id) === String(espnHomeId)
 
   const boxscoreTeams: any[] = summary?.boxscore?.teams ?? []
-  const homeStats = boxscoreTeams.find(t => isHomeId(t.team.id))?.statistics ?? []
-  const awayStats = boxscoreTeams.find(t => !isHomeId(t.team.id))?.statistics ?? []
-  const statRows = homeStats.map((s: any) => ({
-    label: s.label,
-    home: s.displayValue,
-    away: awayStats.find((a: any) => a.name === s.name)?.displayValue ?? '-',
-  }))
+  const homeBox = boxscoreTeams.find(t => isHomeId(t.team.id))
+  const awayBox = boxscoreTeams.find(t => !isHomeId(t.team.id))
+  const homeLogo = homeBox?.team?.logo || m.home_team_logo
+  const awayLogo = awayBox?.team?.logo || m.away_team_logo
+
+  // Curated subset — ESPN doesn't expose Expected Goals, Big Chances
+  // Created/Missed, or Duels Won for this data source, so those are skipped
+  // rather than faked.
+  const STAT_ROWS: { name: string; label: string; pctName?: string }[] = [
+    { name: 'possessionPct', label: 'Possession' },
+    { name: 'shotsOnTarget', label: 'Shots on Goal', pctName: 'shotPct' },
+    { name: 'accuratePasses', label: 'Accurate Passes', pctName: 'passPct' },
+    { name: 'wonCorners', label: 'Corner Kicks' },
+    { name: 'saves', label: 'Saves' },
+    { name: 'foulsCommitted', label: 'Fouls Committed' },
+  ]
+  const statVal = (stats: any[], name: string) => stats?.find((s: any) => s.name === name)
+  const statRows = STAT_ROWS.map(row => {
+    const home = statVal(homeBox?.statistics, row.name)
+    const away = statVal(awayBox?.statistics, row.name)
+    if (!home || !away) return null
+    const homeNum = parseFloat(home.displayValue) || 0
+    const awayNum = parseFloat(away.displayValue) || 0
+    const total = homeNum + awayNum || 1
+    return {
+      label: row.label,
+      homeDisplay: row.label === 'Possession' ? `${home.displayValue}%` : home.displayValue,
+      awayDisplay: row.label === 'Possession' ? `${away.displayValue}%` : away.displayValue,
+      homePct: row.pctName ? statVal(homeBox?.statistics, row.pctName)?.displayValue : null,
+      awayPct: row.pctName ? statVal(awayBox?.statistics, row.pctName)?.displayValue : null,
+      homeShare: (homeNum / total) * 100,
+    }
+  }).filter((r): r is NonNullable<typeof r> => r != null)
 
   const rosters: any[] = summary?.rosters ?? []
   const homeRoster = rosters.find(r => isHomeId(r.team.id))
   const awayRoster = rosters.find(r => !isHomeId(r.team.id))
 
-  const keyEvents: any[] = (summary?.keyEvents ?? [])
-    .filter((e: any) => ['goal', 'yellow-card', 'red-card', 'substitution'].some(t => e.type?.type?.includes(t)))
+  const keyEvents: any[] = summary?.keyEvents ?? []
+  const timelineEvents = keyEvents
+    .filter((e: any) => ['goal', 'goal---header', 'goal---volley', 'penalty---scored', 'own-goal', 'yellow-card', 'red-card', 'substitution'].includes(e.type?.type))
     .sort((a: any, b: any) => (a.clock?.value ?? 0) - (b.clock?.value ?? 0))
+
+  function timelineLabel(e: any): string {
+    if (e.type.type === 'substitution') {
+      const [inP, outP] = e.participants ?? []
+      return inP && outP ? `${inP.athlete.displayName} ↔ ${outP.athlete.displayName}` : (e.text ?? 'Substitution')
+    }
+    const scorer = e.participants?.[0]?.athlete?.displayName
+    const assist = e.participants?.[1]?.athlete?.displayName
+    if (e.type.type === 'yellow-card') return `${scorer ?? 'Yellow Card'} (Yellow Card)`
+    if (e.type.type === 'red-card') return `${scorer ?? 'Red Card'} (Red Card)`
+    if (!scorer) return e.type.text
+    const tag = e.type.type === 'own-goal' ? ' (Own Goal)' : e.type.type === 'penalty---scored' ? ' (Penalty)' : ''
+    return `${scorer}${tag}${assist ? ` — assist ${assist}` : ''}`
+  }
+
+  function eventIcon(type: string) {
+    if (type === 'yellow-card') return '🟨'
+    if (type === 'red-card') return '🟥'
+    if (type === 'substitution') return '↔️'
+    return '⚽'
+  }
+
+  // Compact goal-scorer summary for the score header, grouped by team + player.
+  function scorersFor(teamName: string) {
+    const map = new Map<string, string[]>()
+    for (const e of keyEvents) {
+      if (e.team?.displayName !== teamName || !GOAL_TYPES.includes(e.type?.type)) continue
+      const name = e.participants?.[0]?.athlete?.displayName
+      if (!name) continue
+      const tag = e.type.type === 'penalty---scored' ? ' Pen' : e.type.type === 'own-goal' ? ' OG' : ''
+      if (!map.has(name)) map.set(name, [])
+      map.get(name)!.push(`${e.clock.displayValue}${tag}`)
+    }
+    return [...map.entries()].map(([name, minutes]) => ({ name, minutes }))
+  }
+  function redCardsFor(teamName: string) {
+    return keyEvents
+      .filter((e: any) => e.team?.displayName === teamName && e.type?.type === 'red-card')
+      .map((e: any) => ({ name: e.participants?.[0]?.athlete?.displayName, minute: e.clock.displayValue }))
+  }
+  const homeScorers = scorersFor(m.home_team_name)
+  const awayScorers = scorersFor(m.away_team_name)
+  const homeReds = redCardsFor(m.home_team_name)
+  const awayReds = redCardsFor(m.away_team_name)
 
   const h2hEvents: any[] = summary?.headToHeadGames?.[0]?.events ?? []
 
@@ -61,7 +182,7 @@ export default async function MatchDetailPage({ params }: Props) {
       <div className="glass-card rounded-2xl p-8 mt-4 mb-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 flex flex-col items-center gap-2">
-            {m.home_team_logo && <img src={m.home_team_logo} alt={m.home_team_name} className="w-16 h-16 object-contain" />}
+            {homeLogo && <img src={homeLogo} alt={m.home_team_name} className="w-16 h-16 object-contain" />}
             <span className="font-[var(--font-anybody)] font-bold text-center text-[var(--color-text-primary)]">{m.home_team_name}</span>
           </div>
           <div className="text-center">
@@ -77,10 +198,32 @@ export default async function MatchDetailPage({ params }: Props) {
             {m.venue && <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">{m.venue}</div>}
           </div>
           <div className="flex-1 flex flex-col items-center gap-2">
-            {m.away_team_logo && <img src={m.away_team_logo} alt={m.away_team_name} className="w-16 h-16 object-contain" />}
+            {awayLogo && <img src={awayLogo} alt={m.away_team_name} className="w-16 h-16 object-contain" />}
             <span className="font-[var(--font-anybody)] font-bold text-center text-[var(--color-text-primary)]">{m.away_team_name}</span>
           </div>
         </div>
+
+        {/* Goal scorers / red cards */}
+        {(homeScorers.length > 0 || awayScorers.length > 0 || homeReds.length > 0 || awayReds.length > 0) && (
+          <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-[var(--color-border)] text-sm">
+            <div className="text-right space-y-1">
+              {homeScorers.map(s => (
+                <div key={s.name}>⚽ {s.name} <span className="text-[var(--color-text-muted)]">{s.minutes.join(', ')}</span></div>
+              ))}
+              {homeReds.map(r => (
+                <div key={r.name} className="text-[var(--color-live-text)]">🟥 {r.name} <span className="text-[var(--color-text-muted)]">{r.minute}</span></div>
+              ))}
+            </div>
+            <div className="text-left space-y-1">
+              {awayScorers.map(s => (
+                <div key={s.name}>{s.name} <span className="text-[var(--color-text-muted)]">{s.minutes.join(', ')}</span> ⚽</div>
+              ))}
+              {awayReds.map(r => (
+                <div key={r.name} className="text-[var(--color-live-text)]">{r.name} <span className="text-[var(--color-text-muted)]">{r.minute}</span> 🟥</div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {!summary ? (
@@ -93,12 +236,22 @@ export default async function MatchDetailPage({ params }: Props) {
           {statRows.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Match Stats</h2>
-              <div className="space-y-3">
-                {statRows.map((s: any) => (
-                  <div key={s.label} className="flex items-center gap-3 text-sm">
-                    <span className="w-12 text-right font-bold text-[var(--color-text-primary)] tabular-nums">{s.home}</span>
-                    <span className="flex-1 text-center text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide uppercase">{s.label}</span>
-                    <span className="w-12 text-left font-bold text-[var(--color-text-primary)] tabular-nums">{s.away}</span>
+              <div className="space-y-4">
+                {statRows.map(s => (
+                  <div key={s.label}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">
+                        {s.homeDisplay}{s.homePct != null && <span className="text-[var(--color-text-muted)] font-normal"> ({s.homePct}%)</span>}
+                      </span>
+                      <span className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide uppercase">{s.label}</span>
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">
+                        {s.awayPct != null && <span className="text-[var(--color-text-muted)] font-normal">({s.awayPct}%) </span>}{s.awayDisplay}
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden flex bg-[var(--color-input)]">
+                      <div className="h-full bg-[var(--color-accent-text)]" style={{ width: `${s.homeShare}%` }} />
+                      <div className="h-full bg-[var(--color-live-text)]" style={{ width: `${100 - s.homeShare}%` }} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -106,18 +259,16 @@ export default async function MatchDetailPage({ params }: Props) {
           )}
 
           {/* Timeline */}
-          {keyEvents.length > 0 && (
+          {timelineEvents.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Timeline</h2>
               <div className="space-y-2">
-                {keyEvents.map((e: any) => (
+                {timelineEvents.map((e: any) => (
                   <div key={e.id} className="flex items-center gap-3 text-sm">
                     <span className="w-10 text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">{e.clock?.displayValue || '-'}</span>
+                    <span>{eventIcon(e.type.type)}</span>
                     <span className="text-[var(--color-text-primary)]">
-                      {e.type?.text} — {e.team?.displayName}
-                      {e.athletesInvolved?.[0]?.athlete?.displayName && (
-                        <span className="text-[var(--color-text-secondary)]"> ({e.athletesInvolved[0].athlete.displayName})</span>
-                      )}
+                      {timelineLabel(e)} <span className="text-[var(--color-text-secondary)]">— {e.team?.displayName}</span>
                     </span>
                   </div>
                 ))}
@@ -128,20 +279,18 @@ export default async function MatchDetailPage({ params }: Props) {
           {/* Lineups */}
           {(homeRoster?.roster?.length || awayRoster?.roster?.length) ? (
             <section className="glass-card rounded-2xl p-6">
-              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Lineups</h2>
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Formations & Lineups</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[homeRoster, awayRoster].map((roster, idx) => roster?.roster?.length && (
                   <div key={idx}>
-                    <div className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{roster.team.displayName}</div>
-                    <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mb-3">{roster.formation ?? '—'}</div>
-                    <ul className="space-y-1">
-                      {roster.roster.filter((p: any) => p.starter).map((p: any) => (
-                        <li key={p.athlete.id} className="text-sm text-[var(--color-text-secondary)] flex gap-2">
-                          <span className="text-[var(--color-text-muted)] w-6 tabular-nums">{p.jersey}</span>
-                          <span>{p.athlete.displayName}</span>
-                        </li>
+                    <div className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{roster.team.displayName} — {roster.formation ?? '—'}</div>
+                    <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse gap-4 mt-3">
+                      {pitchRows(roster.roster.filter((p: any) => p.starter)).map((row, rIdx) => (
+                        <div key={rIdx} className="flex justify-evenly">
+                          {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} />)}
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -158,10 +307,13 @@ export default async function MatchDetailPage({ params }: Props) {
                   const leftName = homeIsUsHome ? m.home_team_name : m.away_team_name
                   const rightName = homeIsUsHome ? m.away_team_name : m.home_team_name
                   return (
-                    <div key={ev.id} className="flex items-center justify-between text-sm">
-                      <span className="text-[var(--color-text-secondary)]">{leftName} vs {rightName}</span>
-                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{ev.homeTeamScore} – {ev.awayTeamScore}</span>
-                      <span className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <div key={ev.id} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm">
+                      <span className="text-[var(--color-text-secondary)] text-right truncate">{leftName}</span>
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums whitespace-nowrap px-2">{ev.homeTeamScore} – {ev.awayTeamScore}</span>
+                      <span className="text-[var(--color-text-secondary)] truncate flex items-center justify-between gap-3">
+                        {rightName}
+                        <span className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </span>
                     </div>
                   )
                 })}

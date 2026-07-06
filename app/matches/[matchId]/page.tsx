@@ -54,13 +54,22 @@ function pitchRows(roster: any[]): any[][] {
   return rows.filter(r => r.length > 0)
 }
 
-function PlayerChip({ p }: { p: any }) {
+// Perceived-brightness check so jersey-colored chips (incl. bright yellow
+// kits like Brazil's) always get a legible number color.
+function contrastText(hex?: string): string {
+  if (!hex || hex.length !== 6) return '#002e6a'
+  const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#002e6a' : '#ffffff'
+}
+
+function PlayerChip({ p, teamColor }: { p: any; teamColor?: string }) {
   const goals = p.stats?.find((s: any) => s.name === 'totalGoals')?.value ?? 0
   const yellow = p.stats?.find((s: any) => s.name === 'yellowCards')?.value ?? 0
   const red = p.stats?.find((s: any) => s.name === 'redCards')?.value ?? 0
+  const bg = teamColor ? `#${teamColor}` : '#aec6ff'
   return (
     <div className="flex flex-col items-center gap-1 w-16">
-      <div className="relative w-9 h-9 rounded-full bg-[#aec6ff] text-[#002e6a] flex items-center justify-center font-bold text-sm">
+      <div className="relative w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white/70" style={{ background: bg, color: contrastText(teamColor) }}>
         {p.jersey}
         {red > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-red-600 rounded-sm border border-white" />}
         {!red && yellow > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-yellow-400 rounded-sm border border-white" />}
@@ -292,18 +301,38 @@ export default async function MatchDetailPage({ params }: Props) {
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Formations & Lineups</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[homeRoster, awayRoster].map((roster, idx) => roster?.roster?.length && (
-                  <div key={idx}>
-                    <div className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{roster.team.displayName} — {roster.formation ?? '—'}</div>
-                    <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse justify-evenly gap-4 mt-3 min-h-[420px]">
-                      {pitchRows(roster.roster.filter((p: any) => p.starter)).map((row, rIdx) => (
-                        <div key={rIdx} className="flex justify-center gap-6 sm:gap-10">
-                          {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} />)}
+                {[homeRoster, awayRoster].map((roster, idx) => {
+                  if (!roster?.roster?.length) return null
+                  const subs = keyEvents
+                    .filter((e: any) => e.type?.type === 'substitution' && e.team?.displayName === roster.team.displayName)
+                    .sort((a: any, b: any) => (a.clock?.value ?? 0) - (b.clock?.value ?? 0))
+                  return (
+                    <div key={idx}>
+                      <div className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{roster.team.displayName} — {roster.formation ?? '—'}</div>
+                      <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse justify-evenly gap-4 mt-3 min-h-[420px]">
+                        {pitchRows(roster.roster.filter((p: any) => p.starter)).map((row, rIdx) => (
+                          <div key={rIdx} className="flex justify-center gap-6 sm:gap-10">
+                            {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} />)}
+                          </div>
+                        ))}
+                      </div>
+                      {subs.length > 0 && (
+                        <div className="mt-3 space-y-1">
+                          {subs.map((e: any) => {
+                            const [inP, outP] = e.participants ?? []
+                            return (
+                              <div key={e.id} className="text-xs text-[var(--color-text-secondary)] flex items-center gap-2">
+                                <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] w-8">{e.clock?.displayValue}</span>
+                                <span className="text-[var(--color-live-text)]">↓ {outP?.athlete?.displayName ?? '—'}</span>
+                                <span className="text-[var(--color-accent-text)]">↑ {inP?.athlete?.displayName ?? '—'}</span>
+                              </div>
+                            )
+                          })}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </section>
           ) : null}

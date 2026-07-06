@@ -159,6 +159,7 @@ export default async function MatchDetailPage({ params }: Props) {
     { name: 'totalGoals', label: 'Average Goals' },
     { name: 'goalsConceded', label: 'Average Goals Conceded' },
     { name: 'goalDifference', label: 'Average Goal Differential' },
+    { name: 'goalAssists', label: 'Average Assists' },
   ]
   const homeMatches = matchesPlayed(m.home_team_name)
   const awayMatches = matchesPlayed(m.away_team_name)

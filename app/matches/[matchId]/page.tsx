@@ -141,6 +141,43 @@ export default async function MatchDetailPage({ params }: Props) {
     }
   }).filter((r): r is NonNullable<typeof r> => r != null)
 
+  // Pre-match: boxscore.teams[].statistics swaps to a small tournament-form
+  // set (goalDifference/totalGoals/goalAssists/goalsConceded) instead of the
+  // 28-field post-match breakdown above — this only exists before kickoff,
+  // so it and Match Stats never both render for the same match. Turned
+  // into per-match averages using the "last 5 games" form list to count
+  // matches actually played this tournament (non-friendly).
+  // Known gap: that list is capped at 5, so a team past ~5 tournament
+  // matches (deep knockout runs) will undercount and inflate the averages —
+  // there's no explicit "matches played" field anywhere else in this
+  // response to fall back on.
+  function matchesPlayed(teamName: string): number {
+    const form = (summary?.boxscore?.form ?? []).find((f: any) => f.team?.displayName === teamName)
+    return (form?.events ?? []).filter((e: any) => !(e.competitionName ?? '').toLowerCase().includes('friendly')).length
+  }
+  const FORM_STAT_ROWS = [
+    { name: 'totalGoals', label: 'Average Goals' },
+    { name: 'goalsConceded', label: 'Average Goals Conceded' },
+    { name: 'goalDifference', label: 'Average Goal Differential' },
+  ]
+  const homeMatches = matchesPlayed(m.home_team_name)
+  const awayMatches = matchesPlayed(m.away_team_name)
+  const formStatRows = (homeMatches && awayMatches) ? FORM_STAT_ROWS.map(row => {
+    const home = statVal(homeBox?.statistics, row.name)
+    const away = statVal(awayBox?.statistics, row.name)
+    if (!home || !away) return null
+    const homeAvg = (parseFloat(home.displayValue) || 0) / homeMatches
+    const awayAvg = (parseFloat(away.displayValue) || 0) / awayMatches
+    const fmt = (n: number) => (n > 0 && row.name === 'goalDifference' ? '+' : '') + n.toFixed(1)
+    const total = Math.abs(homeAvg) + Math.abs(awayAvg)
+    return {
+      label: row.label,
+      homeDisplay: fmt(homeAvg),
+      awayDisplay: fmt(awayAvg),
+      homeShare: total === 0 ? 50 : (Math.abs(homeAvg) / total) * 100,
+    }
+  }).filter((r): r is NonNullable<typeof r> => r != null) : []
+
   const rosters: any[] = summary?.rosters ?? []
   const homeRoster = rosters.find(r => isHomeId(r.team.id))
   const awayRoster = rosters.find(r => !isHomeId(r.team.id))
@@ -275,6 +312,28 @@ export default async function MatchDetailPage({ params }: Props) {
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Match Stats</h2>
               <div className="space-y-4">
                 {statRows.map(s => (
+                  <div key={s.label}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{s.homeDisplay}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide uppercase">{s.label}</span>
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{s.awayDisplay}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden flex bg-[var(--color-input)]">
+                      <div className="h-full bg-[var(--color-accent-text)]" style={{ width: `${s.homeShare}%` }} />
+                      <div className="h-full bg-[var(--color-live-text)]" style={{ width: `${100 - s.homeShare}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Tournament form (pre-match only) */}
+          {formStatRows.length > 0 && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Team Stats</h2>
+              <div className="space-y-4">
+                {formStatRows.map(s => (
                   <div key={s.label}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{s.homeDisplay}</span>

@@ -120,13 +120,15 @@ export default async function MatchDetailPage({ params }: Props) {
     const scale = row.isFractionPct ? 100 : 1
     const homeNum = (parseFloat(home.displayValue) || 0) * scale
     const awayNum = (parseFloat(away.displayValue) || 0) * scale
-    const total = homeNum + awayNum || 1
+    const total = homeNum + awayNum
     const fmt = (n: number) => (row.name === 'possessionPct' || row.isFractionPct) ? `${Math.round(n)}%` : `${n}`
     return {
       label: row.label,
       homeDisplay: fmt(homeNum),
       awayDisplay: fmt(awayNum),
-      homeShare: (homeNum / total) * 100,
+      // 0-0 (e.g. no red cards for either side) has no meaningful split —
+      // show an even bar instead of one side defaulting to 0% (all-red/all-blue).
+      homeShare: total === 0 ? 50 : (homeNum / total) * 100,
     }
   }).filter((r): r is NonNullable<typeof r> => r != null)
 

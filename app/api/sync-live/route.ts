@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { mapEspnStatus } from '@/lib/espn'
+import { mapEspnStatus, normalizeTeamName } from '@/lib/espn'
 
 // Server-side cooldown to protect RapidAPI quotas, regardless of how many
 // clients poll this endpoint concurrently.
@@ -19,13 +19,6 @@ type ScoreUpdate = {
 }
 
 const FINISHED_STATUSES = ['FT', 'AET', 'PEN']
-
-// Providers spell some team names differently than what's stored in the DB
-// (e.g. "Bosnia & Herzegovina" vs "Bosnia and Herzegovina") — normalize both
-// sides the same way before matching.
-function normalizeTeamName(name: string): string {
-  return name.replace(/&/g, 'and')
-}
 
 // Draws go to penalties in knockout rounds, so a tie with no penalty score
 // means no winner yet (still shouldn't happen for a FINISHED_STATUSES match).

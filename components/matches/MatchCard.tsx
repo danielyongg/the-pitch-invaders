@@ -223,6 +223,11 @@ export default function MatchCard({ match, prediction, userId }: Props) {
 
       {/* Prediction Section */}
       <div className="px-4 pb-4 pt-2 border-t border-[var(--color-border)] bg-[var(--glass-03)]">
+        <div className="text-right mb-2">
+          <a href={`/matches/${match.id}`} className="text-xs text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide">
+            Match Details →
+          </a>
+        </div>
         {canPredict ? (
           <PredictionInput matchId={match.id} userId={userId} existing={prediction} />
         ) : prediction ? (

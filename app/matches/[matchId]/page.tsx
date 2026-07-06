@@ -354,19 +354,17 @@ export default async function MatchDetailPage({ params }: Props) {
           {h2hEvents.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Head to Head</h2>
-              <div className="space-y-2">
+              <div>
                 {h2hEvents.map((ev: any) => {
                   const homeIsUsHome = String(ev.homeTeamId) === String(espnHomeId)
                   const leftName = homeIsUsHome ? m.home_team_name : m.away_team_name
                   const rightName = homeIsUsHome ? m.away_team_name : m.home_team_name
                   return (
-                    <div key={ev.id} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 py-1.5 border-b border-[var(--glass-05)] last:border-0 text-sm">
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex-1">
-                        <span className="text-[var(--color-text-secondary)] text-right truncate">{leftName}</span>
-                        <span className="font-bold text-[var(--color-text-primary)] tabular-nums whitespace-nowrap px-2">{ev.homeTeamScore} – {ev.awayTeamScore}</span>
-                        <span className="text-[var(--color-text-secondary)] truncate">{rightName}</span>
-                      </div>
-                      <span className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] text-center sm:text-right whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <div key={ev.id} className="grid grid-cols-[1fr_auto_1fr_3.5rem] sm:grid-cols-[1fr_auto_1fr_5rem] items-center gap-2 sm:gap-3 py-2 border-b border-[var(--glass-05)] last:border-0 text-xs sm:text-sm">
+                      <span className="text-[var(--color-text-secondary)] text-right truncate">{leftName}</span>
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums whitespace-nowrap px-1 sm:px-2">{ev.homeTeamScore} – {ev.awayTeamScore}</span>
+                      <span className="text-[var(--color-text-secondary)] truncate">{rightName}</span>
+                      <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] text-right whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
                     </div>
                   )
                 })}

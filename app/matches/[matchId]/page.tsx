@@ -9,10 +9,15 @@ interface Props {
   params: Promise<{ matchId: string }>
 }
 
+// This runs server-side (Vercel's server TZ, not the viewer's) — pin to
+// WIB explicitly instead of leaving it to whatever TZ the server happens
+// to be in, which was rendering literal UTC kickoff_time as if it were
+// local time.
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
+    timeZone: 'Asia/Jakarta',
+  }) + ' WIB'
 }
 
 const GOAL_TYPES = ['goal', 'goal---header', 'goal---volley', 'penalty---scored', 'own-goal']
@@ -82,37 +87,45 @@ export default async function MatchDetailPage({ params }: Props) {
   const espnHomeId = espnCompetitors.find((c: any) => c.homeAway === 'home')?.team?.id
   const isHomeId = (id: string | number) => String(id) === String(espnHomeId)
 
+  // Same staleness issue as the logos below — World Cup rows never had
+  // `venue` backfilled from the pre-ESPN seed, so fall back to ESPN's data.
+  const venue = m.venue || summary?.gameInfo?.venue?.fullName
+
   const boxscoreTeams: any[] = summary?.boxscore?.teams ?? []
   const homeBox = boxscoreTeams.find(t => isHomeId(t.team.id))
   const awayBox = boxscoreTeams.find(t => !isHomeId(t.team.id))
   const homeLogo = homeBox?.team?.logo || m.home_team_logo
   const awayLogo = awayBox?.team?.logo || m.away_team_logo
 
-  // Curated subset — ESPN doesn't expose Expected Goals, Big Chances
-  // Created/Missed, or Duels Won for this data source, so those are skipped
-  // rather than faked.
-  const STAT_ROWS: { name: string; label: string; pctName?: string }[] = [
+  // Curated subset (user-picked, 2026-07-06) — ESPN doesn't expose Expected
+  // Goals, Big Chances Created/Missed, or Duels Won for this data source
+  // (confirmed against multiple matches/competitions), so those are skipped
+  // rather than faked. `passPct` comes back as a 0-1 fraction while
+  // `possessionPct` is already 0-100, hence the isFractionPct flag.
+  const STAT_ROWS: { name: string; label: string; isFractionPct?: boolean }[] = [
     { name: 'possessionPct', label: 'Possession' },
-    { name: 'shotsOnTarget', label: 'Shots on Goal', pctName: 'shotPct' },
-    { name: 'accuratePasses', label: 'Accurate Passes', pctName: 'passPct' },
+    { name: 'totalShots', label: 'Total Shots' },
+    { name: 'shotsOnTarget', label: 'Shots on Target' },
+    { name: 'passPct', label: 'Pass Completion %', isFractionPct: true },
     { name: 'wonCorners', label: 'Corner Kicks' },
-    { name: 'saves', label: 'Saves' },
-    { name: 'foulsCommitted', label: 'Fouls Committed' },
+    { name: 'offsides', label: 'Offsides' },
+    { name: 'yellowCards', label: 'Yellow Cards' },
+    { name: 'redCards', label: 'Red Cards' },
   ]
   const statVal = (stats: any[], name: string) => stats?.find((s: any) => s.name === name)
   const statRows = STAT_ROWS.map(row => {
     const home = statVal(homeBox?.statistics, row.name)
     const away = statVal(awayBox?.statistics, row.name)
     if (!home || !away) return null
-    const homeNum = parseFloat(home.displayValue) || 0
-    const awayNum = parseFloat(away.displayValue) || 0
+    const scale = row.isFractionPct ? 100 : 1
+    const homeNum = (parseFloat(home.displayValue) || 0) * scale
+    const awayNum = (parseFloat(away.displayValue) || 0) * scale
     const total = homeNum + awayNum || 1
+    const fmt = (n: number) => (row.name === 'possessionPct' || row.isFractionPct) ? `${Math.round(n)}%` : `${n}`
     return {
       label: row.label,
-      homeDisplay: row.label === 'Possession' ? `${home.displayValue}%` : home.displayValue,
-      awayDisplay: row.label === 'Possession' ? `${away.displayValue}%` : away.displayValue,
-      homePct: row.pctName ? statVal(homeBox?.statistics, row.pctName)?.displayValue : null,
-      awayPct: row.pctName ? statVal(awayBox?.statistics, row.pctName)?.displayValue : null,
+      homeDisplay: fmt(homeNum),
+      awayDisplay: fmt(awayNum),
       homeShare: (homeNum / total) * 100,
     }
   }).filter((r): r is NonNullable<typeof r> => r != null)
@@ -195,7 +208,7 @@ export default async function MatchDetailPage({ params }: Props) {
             )}
             <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide mt-2">{m.status}</div>
             <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">{fmtDate(m.kickoff_time)}</div>
-            {m.venue && <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">{m.venue}</div>}
+            {venue && <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">{venue}</div>}
           </div>
           <div className="flex-1 flex flex-col items-center gap-2">
             {awayLogo && <img src={awayLogo} alt={m.away_team_name} className="w-16 h-16 object-contain" />}
@@ -240,13 +253,9 @@ export default async function MatchDetailPage({ params }: Props) {
                 {statRows.map(s => (
                   <div key={s.label}>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">
-                        {s.homeDisplay}{s.homePct != null && <span className="text-[var(--color-text-muted)] font-normal"> ({s.homePct}%)</span>}
-                      </span>
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{s.homeDisplay}</span>
                       <span className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide uppercase">{s.label}</span>
-                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">
-                        {s.awayPct != null && <span className="text-[var(--color-text-muted)] font-normal">({s.awayPct}%) </span>}{s.awayDisplay}
-                      </span>
+                      <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{s.awayDisplay}</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden flex bg-[var(--color-input)]">
                       <div className="h-full bg-[var(--color-accent-text)]" style={{ width: `${s.homeShare}%` }} />

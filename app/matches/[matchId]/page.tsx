@@ -62,7 +62,16 @@ function contrastText(hex?: string): string {
   return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#002e6a' : '#ffffff'
 }
 
-function PlayerChip({ p, teamColor }: { p: any; teamColor?: string }) {
+// 1xBet's top-performers ratings only cover a team's standout ~3 players,
+// not the full XI (that's all the source data has) — so the badge only
+// shows up for whoever's in that list, everyone else's chip looks as before.
+function ratingColor(score: number): string {
+  if (score >= 7.5) return '#22c55e'
+  if (score >= 6.5) return '#3b82f6'
+  return '#eab308'
+}
+
+function PlayerChip({ p, teamColor, rating }: { p: any; teamColor?: string; rating?: number }) {
   const goals = p.stats?.find((s: any) => s.name === 'totalGoals')?.value ?? 0
   const yellow = p.stats?.find((s: any) => s.name === 'yellowCards')?.value ?? 0
   const red = p.stats?.find((s: any) => s.name === 'redCards')?.value ?? 0
@@ -74,6 +83,14 @@ function PlayerChip({ p, teamColor }: { p: any; teamColor?: string }) {
         {red > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-red-600 rounded-sm border border-white" />}
         {!red && yellow > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-yellow-400 rounded-sm border border-white" />}
         {goals > 0 && <span className="absolute -bottom-1 -right-1 text-[10px]">⚽</span>}
+        {rating != null && (
+          <span
+            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[9px] font-bold px-1 rounded tabular-nums text-white"
+            style={{ background: ratingColor(rating) }}
+          >
+            {rating.toFixed(1)}
+          </span>
+        )}
       </div>
       <span className="text-[10px] text-center text-white leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">{p.athlete.shortName ?? p.athlete.displayName}</span>
     </div>
@@ -163,6 +180,34 @@ export default async function MatchDetailPage({ params }: Props) {
   ]
   const homeMatches = matchesPlayed(m.home_team_name)
   const awayMatches = matchesPlayed(m.away_team_name)
+
+  // 1xBet supplement (World Cup only, fetched once at full-time by
+  // sync-live — never fetched here, so this section simply doesn't render
+  // pre-match or for non-WC matches). Heatmap is stored in onexbet_stats
+  // but not rendered — plotting it on a pitch is a separate feature, not
+  // just a stats list.
+  const onexbet = m.onexbet_stats as any
+  const styleOfPlay = onexbet?.styleOfPlay
+  const prediction: string[] = onexbet?.prediction?.prediction ?? []
+
+  // recentForm.{home,away} are 1xBet's raw "team's last 5 finished matches"
+  // lists — each entry only knows team1/team2, not which side is "us", so
+  // resolve W/D/L and the opponent's name by matching against our own team
+  // name (normalized the same way sync-live matches ESPN team names).
+  function formLine(entries: any[], teamName: string) {
+    const norm = normalizeTeamName(teamName).toLowerCase()
+    return entries.map((e: any) => {
+      const isTeam1 = normalizeTeamName(e.team1?.name ?? '').toLowerCase() === norm
+      const us = isTeam1 ? e.score1 : e.score2
+      const them = isTeam1 ? e.score2 : e.score1
+      const opponent = isTeam1 ? e.team2?.name : e.team1?.name
+      const result = us > them ? 'W' : us < them ? 'L' : 'D'
+      return { opponent, us, them, result }
+    })
+  }
+  const recentForm = onexbet?.recentForm
+  const homeForm = recentForm ? formLine(recentForm.home, m.home_team_name) : []
+  const awayForm = recentForm ? formLine(recentForm.away, m.away_team_name) : []
   const formStatRows = (homeMatches && awayMatches) ? FORM_STAT_ROWS.map(row => {
     const home = statVal(homeBox?.statistics, row.name)
     const away = statVal(awayBox?.statistics, row.name)
@@ -182,6 +227,27 @@ export default async function MatchDetailPage({ params }: Props) {
   const rosters: any[] = summary?.rosters ?? []
   const homeRoster = rosters.find(r => isHomeId(r.team.id))
   const awayRoster = rosters.find(r => !isHomeId(r.team.id))
+
+  // Name-matched against ESPN's roster (1xBet has no shared player id with
+  // ESPN). Both sources abbreviate to "surname + initial", but disagree on
+  // order — ESPN: "F. Lastname", 1xBet: "Lastname F." — so strip any
+  // single-letter/initial token from either end rather than assuming a
+  // fixed position, leaving just the surname both sides agree on.
+  // match/player-stats covers the full squad (starters + subs), unlike
+  // top-performers which only lists ~3 standouts per team — so this is the
+  // source for the lineup rating badge.
+  const surname = (n: string) => n.trim().toLowerCase().split(/\s+/).filter(t => !/^[a-z]\.?$/.test(t)).join(' ') || n.trim().toLowerCase()
+  const ratingsByName = new Map<string, number>()
+  const playerStats: any[] = onexbet?.playerStats ?? []
+  for (const team of playerStats) {
+    const summary = team.categories?.find((c: any) => c.title === 'Summary')
+    for (const row of summary?.players ?? []) {
+      const name = row.player?.shortName ?? row.player?.name
+      const rating = parseFloat(row.stats?.R)
+      if (name && !Number.isNaN(rating)) ratingsByName.set(surname(name), rating)
+    }
+  }
+  const ratingFor = (p: any) => ratingsByName.get(surname(p.athlete?.shortName ?? p.athlete?.displayName ?? ''))
 
   const keyEvents: any[] = summary?.keyEvents ?? []
   const timelineEvents = keyEvents
@@ -307,6 +373,36 @@ export default async function MatchDetailPage({ params }: Props) {
         </div>
       ) : (
         <div className="space-y-6">
+          {/* 1xBet: pre-match preview + last-5 form (pre-kickoff only) */}
+          {prediction.length > 0 && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Match Preview</h2>
+              <div className="space-y-2 text-sm text-[var(--color-text-primary)]">
+                {prediction.map((p, i) => <p key={i}>{p}</p>)}
+              </div>
+            </section>
+          )}
+
+          {recentForm && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Recent Form</h2>
+              <div className="grid grid-cols-2 gap-6">
+                {[{ label: m.home_team_name, form: homeForm }, { label: m.away_team_name, form: awayForm }].map(({ label, form }) => (
+                  <div key={label} className="space-y-2">
+                    <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide">{label}</div>
+                    {form.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm">
+                        <span className="text-[var(--color-text-primary)]">vs {f.opponent}</span>
+                        <span className="tabular-nums text-[var(--color-text-secondary)]">{f.us}-{f.them}</span>
+                        <span className={`font-bold w-5 text-center rounded ${f.result === 'W' ? 'text-green-500' : f.result === 'L' ? 'text-red-500' : 'text-[var(--color-text-secondary)]'}`}>{f.result}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Stats */}
           {statRows.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
@@ -351,6 +447,33 @@ export default async function MatchDetailPage({ params }: Props) {
             </section>
           )}
 
+          {/* 1xBet: pre-match style-of-play analysis (player ratings now
+              shown as a badge on each player's lineup chip instead, see
+              PlayerChip/ratingFor above) */}
+          {styleOfPlay && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Style of Play</h2>
+              {(styleOfPlay.forecasts ?? []).length > 0 && (
+                <ul className="space-y-1 mb-4 text-sm text-[var(--color-text-primary)] list-disc list-inside">
+                  {styleOfPlay.forecasts.map((f: any, i: number) => <li key={i}>{f.text}</li>)}
+                </ul>
+              )}
+              <div className="grid grid-cols-2 gap-6">
+                {(styleOfPlay.teams ?? []).map((team: any) => (
+                  <div key={team.team?.teamHash} className="space-y-1">
+                    <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide mb-1">{team.team?.name}</div>
+                    {(team.strengths ?? []).slice(0, 3).map((s: any, i: number) => (
+                      <div key={i} className="text-sm text-[var(--color-text-primary)] flex justify-between">
+                        <span>{s.text}</span>
+                        <span className="text-[var(--color-text-secondary)]">{s.levelText}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Timeline */}
           {timelineEvents.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
@@ -385,10 +508,20 @@ export default async function MatchDetailPage({ params }: Props) {
                       <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse justify-evenly gap-4 mt-3 min-h-[420px]">
                         {pitchRows(roster.roster.filter((p: any) => p.starter)).map((row, rIdx) => (
                           <div key={rIdx} className="flex justify-center gap-6 sm:gap-10">
-                            {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} />)}
+                            {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} rating={ratingFor(p)} />)}
                           </div>
                         ))}
                       </div>
+                      {roster.roster.some((p: any) => !p.starter) && (
+                        <div className="mt-4">
+                          <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide mb-2">Substitutes</div>
+                          <div className="flex flex-wrap gap-3">
+                            {roster.roster.filter((p: any) => !p.starter).map((p: any) => (
+                              <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} rating={ratingFor(p)} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {subs.length > 0 && (
                         <div className="mt-3 space-y-1">
                           {subs.map((e: any) => {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { mapEspnStatus, normalizeTeamName } from '@/lib/espn'
+import { resolveOnexbetMatchHash, resolveTeamHashes, fetchOnexbetStats, fetchOnexbetPreMatch } from '@/lib/onexbet'
 
 // Server-side cooldown to protect RapidAPI quotas, regardless of how many
 // clients poll this endpoint concurrently.
@@ -97,7 +98,78 @@ async function advanceBracketSeed(supabase: ReturnType<typeof createAdminClient>
   return null
 }
 
-async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, updates: ScoreUpdate[]) {
+// Fire-and-forget: 1xBet only covers the World Cup, only has a handful of
+// matches finishing per day, and a failure here shouldn't fail the sync —
+// ESPN's data (already saved above) is authoritative for score/status.
+//
+// 1xBet's fixture-list endpoints (prematch/live) only ever expose the
+// *current* round — a match's matchHash can't be found by team name again
+// once it's no longer that round's active fixture (confirmed empirically:
+// none of the World Cup's ~90 already-played matches turn up there anymore).
+// So the matchHash is resolved once, while the match is still upcoming (see
+// fillOnexbetPreMatch), and persisted to onexbet_stats.matchHash — the
+// post-match fill below reuses that stored hash instead of re-resolving,
+// which would silently fail for anything already finished.
+//
+// Guarded per sub-key (not the whole onexbet_stats object) so pre-match and
+// post-match data can both land on the same row without one blocking the
+// other, and neither ever re-spends the Basic tier's 500 req/month quota on
+// the same match twice.
+async function fillOnexbetStats(supabase: ReturnType<typeof createAdminClient>, matchId: string, apiKey: string, homeTeam: string, awayTeam: string) {
+  const { data: row } = await supabase.from('matches').select('onexbet_stats').eq('id', matchId).single()
+  if (row?.onexbet_stats?.statistics) return
+
+  try {
+    // Prefer the hash captured pre-match; only attempt a fresh by-name
+    // resolve as a best-effort fallback (e.g. this match's pre-match fill
+    // never got a chance to run) — it will likely fail once the match has
+    // already left the current-round fixture list.
+    const matchHash = row?.onexbet_stats?.matchHash ?? await resolveOnexbetMatchHash(apiKey, homeTeam, awayTeam)
+    if (!matchHash) return
+    const stats = await fetchOnexbetStats(apiKey, matchHash)
+    await supabase.from('matches').update({ onexbet_stats: { ...row?.onexbet_stats, ...stats } }).eq('id', matchId)
+  } catch {
+    // best-effort — leave onexbet_stats as-is, match detail page just won't show that section
+  }
+}
+
+// Placeholder names ("TeamA/TeamB" group-stage slots, "Winner QF 1" bracket
+// seeds — see advanceKnockoutWinner/advanceBracketSeed above) never match a
+// real 1xBet fixture, so skip those rather than burning a request finding
+// that out on every single sync-live run until the real team is known.
+function isPlaceholderTeam(name: string): boolean {
+  return name.includes('/') || name.startsWith('Winner ') || name.startsWith('Loser ')
+}
+
+// Same fire-and-forget shape as fillOnexbetStats, but for matches that
+// haven't kicked off yet: resolves + persists matchHash and teamHashes (so
+// later calls never have to re-resolve them), then fetches the prediction
+// preview + last 5 results per team.
+//
+// Guarded on recentForm actually having content rather than on prediction's
+// mere presence — the prediction endpoint always returns a `{prediction:[]}`
+// shape even when 1xBet hasn't published preview text yet, so treating that
+// as "done" would permanently skip retrying a recentForm call that failed
+// transiently (observed in practice: two matches processed in the same
+// batch, one got real form data, the other came back empty).
+async function fillOnexbetPreMatch(supabase: ReturnType<typeof createAdminClient>, matchId: string, apiKey: string, homeTeam: string, awayTeam: string) {
+  if (isPlaceholderTeam(homeTeam) || isPlaceholderTeam(awayTeam)) return
+  const { data: row } = await supabase.from('matches').select('onexbet_stats').eq('id', matchId).single()
+  const existing = row?.onexbet_stats
+  if (existing?.recentForm?.home?.length > 0 && existing?.recentForm?.away?.length > 0) return
+
+  try {
+    const matchHash = existing?.matchHash ?? await resolveOnexbetMatchHash(apiKey, homeTeam, awayTeam)
+    if (!matchHash) return
+    const teamHashes = existing?.teamHashes ?? await resolveTeamHashes(apiKey, matchHash)
+    const preMatch = teamHashes ? await fetchOnexbetPreMatch(apiKey, matchHash, teamHashes) : null
+    await supabase.from('matches').update({ onexbet_stats: { ...existing, matchHash, teamHashes, ...preMatch } }).eq('id', matchId)
+  } catch {
+    // best-effort — leave as-is, match detail page just won't show that section
+  }
+}
+
+async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, updates: ScoreUpdate[], onexbetApiKey: string) {
   let updated = 0
   let scored = 0
   const errors: string[] = []
@@ -129,6 +201,8 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
 
         const seedError = await advanceBracketSeed(supabase, row.id, u)
         if (seedError) errors.push(seedError)
+
+        await fillOnexbetStats(supabase, row.id, onexbetApiKey, u.homeTeam, u.awayTeam)
       }
       const advanceError = await advanceKnockoutWinner(supabase, u)
       if (advanceError) errors.push(advanceError)
@@ -406,6 +480,21 @@ export async function GET() {
 
   const supabase = createAdminClient()
 
+  // Pre-match 1xBet fill for upcoming World Cup fixtures whose teams are
+  // already known (bracket seed resolved) but haven't kicked off yet. Runs
+  // every cycle regardless of whether a match is currently live — separate
+  // from the score-update path below, and each row is only ever filled once
+  // (see fillOnexbetPreMatch's guard).
+  const { data: upcoming } = await supabase
+    .from('matches')
+    .select('id, home_team_name, away_team_name, onexbet_stats')
+    .eq('league_id', 77)
+    .eq('status', 'NS')
+    .gt('kickoff_time', new Date().toISOString())
+  for (const row of upcoming ?? []) {
+    await fillOnexbetPreMatch(supabase, row.id, apiKey, row.home_team_name, row.away_team_name)
+  }
+
   // Skip hitting any provider (and burning quota) if no match is actually
   // pending an update — e.g. no live match and nothing kicked off yet.
   const { count: activeCount } = await supabase
@@ -432,7 +521,7 @@ export async function GET() {
     try {
       const updates = await fn(apiKey)
       if (updates && updates.length > 0) {
-        const { updated, scored, errors } = await applyUpdates(supabase, updates)
+        const { updated, scored, errors } = await applyUpdates(supabase, updates, apiKey)
         lastResult = { ok: true, source, updated, scored, errors }
         return NextResponse.json(lastResult)
       }

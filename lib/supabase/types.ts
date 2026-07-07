@@ -49,6 +49,7 @@ export interface Database {
           away_penalty_score: number | null
           round: string | null
           venue: string | null
+          onexbet_stats: Json | null
           created_at: string
           updated_at: string
         }
@@ -78,6 +79,7 @@ export interface Database {
           away_score?: number | null
           home_penalty_score?: number | null
           away_penalty_score?: number | null
+          onexbet_stats?: Json | null
           updated_at?: string
         }
       }

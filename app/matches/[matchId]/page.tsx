@@ -366,42 +366,47 @@ export default async function MatchDetailPage({ params }: Props) {
         )}
       </div>
 
-      {!summary ? (
-        <div className="glass-card rounded-2xl p-8 text-center text-[var(--color-text-secondary)]">
-          Match details aren&apos;t available yet for this fixture.
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* 1xBet: pre-match preview + last-5 form (pre-kickoff only) */}
-          {prediction.length > 0 && (
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Match Preview</h2>
-              <div className="space-y-2 text-sm text-[var(--color-text-primary)]">
-                {prediction.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-            </section>
-          )}
+      {/* 1xBet: pre-match preview + last-5 form — sourced from onexbet_stats
+          alone, not the ESPN summary below, so these still show up on a
+          fixture ESPN hasn't published a summary for yet (e.g. right after
+          a bracket slot resolves). */}
+      {prediction.length > 0 && (
+        <section className="glass-card rounded-2xl p-6 mb-6">
+          <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Match Preview</h2>
+          <div className="space-y-2 text-sm text-[var(--color-text-primary)]">
+            {prediction.map((p, i) => <p key={i}>{p}</p>)}
+          </div>
+        </section>
+      )}
 
-          {recentForm && (
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Recent Form</h2>
-              <div className="grid grid-cols-2 gap-6">
-                {[{ label: m.home_team_name, form: homeForm }, { label: m.away_team_name, form: awayForm }].map(({ label, form }) => (
-                  <div key={label} className="space-y-2">
-                    <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide">{label}</div>
-                    {form.map((f, i) => (
-                      <div key={i} className="grid grid-cols-[1fr_auto_1.5rem] items-center gap-2 text-sm">
-                        <span className="text-[var(--color-text-primary)] truncate">vs {f.opponent}</span>
-                        <span className="tabular-nums text-[var(--color-text-secondary)] text-right">{f.us}-{f.them}</span>
-                        <span className={`font-bold text-center rounded ${f.result === 'W' ? 'text-green-500' : f.result === 'L' ? 'text-red-500' : 'text-[var(--color-text-secondary)]'}`}>{f.result}</span>
-                      </div>
-                    ))}
+      {recentForm && (
+        <section className="glass-card rounded-2xl p-6 mb-6">
+          <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Recent Form</h2>
+          <div className="grid grid-cols-2 gap-6">
+            {[{ label: m.home_team_name, form: homeForm }, { label: m.away_team_name, form: awayForm }].map(({ label, form }) => (
+              <div key={label} className="space-y-2">
+                <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide">{label}</div>
+                {form.map((f, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_auto_1.5rem] items-center gap-2 text-sm">
+                    <span className="text-[var(--color-text-primary)] truncate">vs {f.opponent}</span>
+                    <span className="tabular-nums text-[var(--color-text-secondary)] text-right">{f.us}-{f.them}</span>
+                    <span className={`font-bold text-center rounded ${f.result === 'W' ? 'text-green-500' : f.result === 'L' ? 'text-red-500' : 'text-[var(--color-text-secondary)]'}`}>{f.result}</span>
                   </div>
                 ))}
               </div>
-            </section>
-          )}
+            ))}
+          </div>
+        </section>
+      )}
 
+      {!summary ? (
+        prediction.length === 0 && !recentForm && (
+          <div className="glass-card rounded-2xl p-8 text-center text-[var(--color-text-secondary)]">
+            Match details aren&apos;t available yet for this fixture.
+          </div>
+        )
+      ) : (
+        <div className="space-y-6">
           {/* Stats */}
           {statRows.length > 0 && (
             <section className="glass-card rounded-2xl p-6">

@@ -34,6 +34,19 @@ function computeWinner(u: ScoreUpdate): string | null {
   return null
 }
 
+// A placeholder slot ("Winner QF 1", "TeamA/TeamB") is seeded with whatever
+// logo the fixture sync happened to assign it, which never matches the real
+// team once resolved (confirmed 404s in practice) — so whenever we resolve a
+// placeholder to a real team name, also look up that team's actual crest
+// from any other WC match row that already has it (virtually every team has
+// one from the group stage) and patch it in alongside the name.
+async function knownTeamLogo(supabase: ReturnType<typeof createAdminClient>, teamName: string): Promise<string | null> {
+  const { data: homeRow } = await supabase.from('matches').select('home_team_logo').eq('league_id', 77).eq('home_team_name', teamName).not('home_team_logo', 'is', null).limit(1).maybeSingle()
+  if (homeRow?.home_team_logo) return homeRow.home_team_logo
+  const { data: awayRow } = await supabase.from('matches').select('away_team_logo').eq('league_id', 77).eq('away_team_name', teamName).not('away_team_logo', 'is', null).limit(1).maybeSingle()
+  return awayRow?.away_team_logo ?? null
+}
+
 // Round of 32 fixtures are seeded with a "TeamA/TeamB" placeholder for
 // whichever side isn't decided yet (both teams come from group stage
 // runner-up/winner slots, so there's no bracket seed number yet). Once
@@ -42,13 +55,16 @@ function computeWinner(u: ScoreUpdate): string | null {
 async function advanceKnockoutWinner(supabase: ReturnType<typeof createAdminClient>, u: ScoreUpdate): Promise<string | null> {
   const winner = computeWinner(u)
   if (!winner) return null
+  const logo = await knownTeamLogo(supabase, winner)
   const slotA = `${u.homeTeam}/${u.awayTeam}`
   const slotB = `${u.awayTeam}/${u.homeTeam}`
-  for (const [column, slot] of [['home_team_name', slotA], ['home_team_name', slotB], ['away_team_name', slotA], ['away_team_name', slotB]] as const) {
+  for (const [nameColumn, logoColumn, slot] of [['home_team_name', 'home_team_logo', slotA], ['home_team_name', 'home_team_logo', slotB], ['away_team_name', 'away_team_logo', slotA], ['away_team_name', 'away_team_logo', slotB]] as const) {
+    const patch: Record<string, string> = { [nameColumn]: winner }
+    if (logo) patch[logoColumn] = logo
     const { error } = await supabase
       .from('matches')
-      .update({ [column]: winner })
-      .eq(column, slot)
+      .update(patch)
+      .eq(nameColumn, slot)
     if (error) return `advance ${slotA}: ${error.message}`
   }
   return null
@@ -75,6 +91,8 @@ async function advanceBracketSeed(supabase: ReturnType<typeof createAdminClient>
   const winner = computeWinner(u)
   if (!winner) return null
   const loser = winner === u.homeTeam ? u.awayTeam : u.homeTeam
+  const winnerLogo = await knownTeamLogo(supabase, winner)
+  const loserLogo = await knownTeamLogo(supabase, loser)
 
   const { data: roundMatches, error: roundError } = await supabase
     .from('matches')
@@ -86,13 +104,15 @@ async function advanceBracketSeed(supabase: ReturnType<typeof createAdminClient>
   const position = (roundMatches ?? []).findIndex(m => m.id === matchId) + 1
   if (position <= 0) return null
 
-  for (const [column, placeholder, name] of [
-    ['home_team_name', `Winner ${token} ${position}`, winner],
-    ['away_team_name', `Winner ${token} ${position}`, winner],
-    ['home_team_name', `Loser ${token} ${position}`, loser],
-    ['away_team_name', `Loser ${token} ${position}`, loser],
+  for (const [nameColumn, logoColumn, placeholder, name, logo] of [
+    ['home_team_name', 'home_team_logo', `Winner ${token} ${position}`, winner, winnerLogo],
+    ['away_team_name', 'away_team_logo', `Winner ${token} ${position}`, winner, winnerLogo],
+    ['home_team_name', 'home_team_logo', `Loser ${token} ${position}`, loser, loserLogo],
+    ['away_team_name', 'away_team_logo', `Loser ${token} ${position}`, loser, loserLogo],
   ] as const) {
-    const { error } = await supabase.from('matches').update({ [column]: name }).eq(column, placeholder)
+    const patch: Record<string, string> = { [nameColumn]: name }
+    if (logo) patch[logoColumn] = logo
+    const { error } = await supabase.from('matches').update(patch).eq(nameColumn, placeholder)
     if (error) return `advance seed ${placeholder}: ${error.message}`
   }
   return null

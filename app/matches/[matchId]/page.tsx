@@ -71,7 +71,7 @@ function ratingColor(score: number): string {
   return '#eab308'
 }
 
-function PlayerChip({ p, teamColor, rating }: { p: any; teamColor?: string; rating?: number }) {
+function PlayerChip({ p, teamColor, rating, onPitch = true }: { p: any; teamColor?: string; rating?: number; onPitch?: boolean }) {
   const goals = p.stats?.find((s: any) => s.name === 'totalGoals')?.value ?? 0
   const yellow = p.stats?.find((s: any) => s.name === 'yellowCards')?.value ?? 0
   const red = p.stats?.find((s: any) => s.name === 'redCards')?.value ?? 0
@@ -92,7 +92,7 @@ function PlayerChip({ p, teamColor, rating }: { p: any; teamColor?: string; rati
           </span>
         )}
       </div>
-      <span className="text-[10px] text-center text-white leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">{p.athlete.shortName ?? p.athlete.displayName}</span>
+      <span className={onPitch ? 'text-[10px] text-center text-white leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]' : 'text-[10px] text-center text-[var(--color-text-primary)] leading-tight'}>{p.athlete.shortName ?? p.athlete.displayName}</span>
     </div>
   )
 }
@@ -187,7 +187,6 @@ export default async function MatchDetailPage({ params }: Props) {
   // but not rendered — plotting it on a pitch is a separate feature, not
   // just a stats list.
   const onexbet = m.onexbet_stats as any
-  const styleOfPlay = onexbet?.styleOfPlay
   const prediction: string[] = onexbet?.prediction?.prediction ?? []
 
   // recentForm.{home,away} are 1xBet's raw "team's last 5 finished matches"
@@ -391,10 +390,10 @@ export default async function MatchDetailPage({ params }: Props) {
                   <div key={label} className="space-y-2">
                     <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide">{label}</div>
                     {form.map((f, i) => (
-                      <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-[var(--color-text-primary)]">vs {f.opponent}</span>
-                        <span className="tabular-nums text-[var(--color-text-secondary)]">{f.us}-{f.them}</span>
-                        <span className={`font-bold w-5 text-center rounded ${f.result === 'W' ? 'text-green-500' : f.result === 'L' ? 'text-red-500' : 'text-[var(--color-text-secondary)]'}`}>{f.result}</span>
+                      <div key={i} className="grid grid-cols-[1fr_auto_1.5rem] items-center gap-2 text-sm">
+                        <span className="text-[var(--color-text-primary)] truncate">vs {f.opponent}</span>
+                        <span className="tabular-nums text-[var(--color-text-secondary)] text-right">{f.us}-{f.them}</span>
+                        <span className={`font-bold text-center rounded ${f.result === 'W' ? 'text-green-500' : f.result === 'L' ? 'text-red-500' : 'text-[var(--color-text-secondary)]'}`}>{f.result}</span>
                       </div>
                     ))}
                   </div>
@@ -447,32 +446,9 @@ export default async function MatchDetailPage({ params }: Props) {
             </section>
           )}
 
-          {/* 1xBet: pre-match style-of-play analysis (player ratings now
-              shown as a badge on each player's lineup chip instead, see
-              PlayerChip/ratingFor above) */}
-          {styleOfPlay && (
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Style of Play</h2>
-              {(styleOfPlay.forecasts ?? []).length > 0 && (
-                <ul className="space-y-1 mb-4 text-sm text-[var(--color-text-primary)] list-disc list-inside">
-                  {styleOfPlay.forecasts.map((f: any, i: number) => <li key={i}>{f.text}</li>)}
-                </ul>
-              )}
-              <div className="grid grid-cols-2 gap-6">
-                {(styleOfPlay.teams ?? []).map((team: any) => (
-                  <div key={team.team?.teamHash} className="space-y-1">
-                    <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide mb-1">{team.team?.name}</div>
-                    {(team.strengths ?? []).slice(0, 3).map((s: any, i: number) => (
-                      <div key={i} className="text-sm text-[var(--color-text-primary)] flex justify-between">
-                        <span>{s.text}</span>
-                        <span className="text-[var(--color-text-secondary)]">{s.levelText}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Style of Play section temporarily removed — 1xBet's data for
+              this endpoint has come back empty for every WC2026 match tried,
+              so the box only ever rendered empty. Restore once it fills in. */}
 
           {/* Timeline */}
           {timelineEvents.length > 0 && (
@@ -517,7 +493,7 @@ export default async function MatchDetailPage({ params }: Props) {
                           <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide mb-2">Substitutes</div>
                           <div className="flex flex-wrap gap-3">
                             {roster.roster.filter((p: any) => !p.starter).map((p: any) => (
-                              <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} rating={ratingFor(p)} />
+                              <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} rating={ratingFor(p)} onPitch={false} />
                             ))}
                           </div>
                         </div>

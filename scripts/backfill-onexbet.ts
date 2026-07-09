@@ -13,7 +13,7 @@
 //
 // Not wired into any route — run manually: npx tsx scripts/backfill-onexbet.ts
 import { createAdminClient } from '../lib/supabase/admin'
-import { fetchTeamFinishedMatches, fetchOnexbetStats } from '../lib/onexbet'
+import { fetchTeamFinishedMatches, fetchOnexbetStats, OnexbetQuotaError } from '../lib/onexbet'
 import { normalizeTeamName } from '../lib/espn'
 
 // Basic tier is 500 req/month shared with everything else this project
@@ -78,10 +78,17 @@ async function main() {
   for (const [key, m] of needed) if (m.matchHash) discovered.set(key, m.matchHash)
   const stillMissing = () => [...needed.keys()].filter(k => !discovered.has(k)).length
 
-  while (queue.length > 0 && requestsSpent < CRAWL_BUDGET && stillMissing() > 0) {
+  let quotaDead = false
+  while (!quotaDead && queue.length > 0 && requestsSpent < CRAWL_BUDGET && stillMissing() > 0) {
     const teamHash = queue.shift()!
     requestsSpent++
-    const finished = await fetchTeamFinishedMatches(apiKey, teamHash)
+    let finished: any[]
+    try {
+      finished = await fetchTeamFinishedMatches(apiKey, teamHash)
+    } catch (e) {
+      if (e instanceof OnexbetQuotaError) { console.log('monthly quota exceeded, stopping crawl'); quotaDead = true; break }
+      throw e
+    }
     for (const entry of finished) {
       const key = matchKey(entry.team1?.name ?? '', entry.team2?.name ?? '')
       if (needed.has(key) && !discovered.has(key)) {
@@ -116,11 +123,21 @@ async function main() {
     // silently persisting an empty result and burning the 4-request budget
     // for nothing.
     let stats: Record<string, any> = {}
+    let quotaDead = false
     for (let attempt = 0; attempt < 3; attempt++) {
       requestsSpent += 4
-      stats = await fetchOnexbetStats(apiKey, matchHash)
+      try {
+        stats = await fetchOnexbetStats(apiKey, matchHash)
+      } catch (e) {
+        if (e instanceof OnexbetQuotaError) { quotaDead = true; break }
+        throw e
+      }
       if (stats.statistics) break
       await sleep(2000)
+    }
+    if (quotaDead) {
+      console.log('monthly quota exceeded, stopping fill — rerun next month to pick up where this left off')
+      break
     }
     if (!stats.statistics) console.log(`  gave up after retries, statistics still empty`)
     await supabase.from('matches').update({ onexbet_stats: { matchHash, ...stats } }).eq('id', target.id)

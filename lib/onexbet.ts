@@ -10,12 +10,19 @@ const BASE = `https://${HOST}/api/1xbet/v1`
 // endpoint.
 const WORLD_CUP_2026_CHAMPIONSHIP_ID = 2708736
 
+// Thrown (not swallowed as null) so callers that retry-in-a-loop — like
+// scripts/backfill-onexbet.ts — can tell "quota's dead, stop entirely" apart
+// from an ordinary transient empty response and bail out instantly instead
+// of burning the retry budget on every remaining match.
+export class OnexbetQuotaError extends Error {}
+
 async function onexbetFetch(apiKey: string, path: string, params: Record<string, string>): Promise<any | null> {
   const qs = new URLSearchParams({ ...params, lang: 'en' })
   const res = await fetch(`${BASE}${path}?${qs}`, {
     headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': HOST },
     next: { revalidate: 0 },
   })
+  if (res.status === 429) throw new OnexbetQuotaError('1xBet RapidAPI monthly quota exceeded')
   if (!res.ok) return null
   return res.json()
 }

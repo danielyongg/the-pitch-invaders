@@ -5,6 +5,7 @@ import Image from 'next/image'
 import KickoffCountdown from './KickoffCountdown'
 import PredictionInput from '@/components/predictions/PredictionInput'
 import type { Match, Prediction } from '@/lib/supabase/types'
+import { getFlagUrls } from '@/lib/flags'
 
 const ROUND_LABELS: Record<string, string> = {
   group: 'Group Stage',
@@ -36,37 +37,6 @@ const LEAGUE_COLORS: Record<number, { bg: string; text: string }> = {
   55: { bg: '#024494', text: '#a9d4ff' },
   53: { bg: '#091c3e', text: '#9fc1ff' },
   100: { bg: '#3a3a3a', text: '#d4d4d4' },
-}
-
-const COUNTRY_CODE: Record<string, string> = {
-  'Algeria': 'dz', 'Argentina': 'ar', 'Australia': 'au', 'Austria': 'at',
-  'Belgium': 'be', 'Bosnia and Herzegovina': 'ba', 'Brazil': 'br',
-  'Canada': 'ca', 'Cape Verde': 'cv', 'Chile': 'cl', 'Colombia': 'co',
-  'Croatia': 'hr', 'Curacao': 'cw', 'Czechia': 'cz', 'Czech Republic': 'cz',
-  'DR Congo': 'cd', 'Ecuador': 'ec', 'Egypt': 'eg', 'England': 'gb-eng',
-  'France': 'fr', 'Germany': 'de', 'Ghana': 'gh', 'Haiti': 'ht',
-  'Iran': 'ir', 'Iraq': 'iq', 'Italy': 'it', 'Ivory Coast': 'ci',
-  'Japan': 'jp', 'Jordan': 'jo', 'Mexico': 'mx', 'Morocco': 'ma',
-  'Netherlands': 'nl', 'New Zealand': 'nz', 'Nigeria': 'ng', 'Norway': 'no',
-  'Panama': 'pa', 'Paraguay': 'py', 'Peru': 'pe', 'Poland': 'pl',
-  'Portugal': 'pt', 'Qatar': 'qa', 'Saudi Arabia': 'sa',
-  'Scotland': 'gb-sct', 'Senegal': 'sn', 'Serbia': 'rs',
-  'South Africa': 'za', 'South Korea': 'kr', 'Spain': 'es',
-  'Sweden': 'se', 'Switzerland': 'ch', 'Tunisia': 'tn',
-  'Turkiye': 'tr', 'Turkey': 'tr', 'Ukraine': 'ua',
-  'USA': 'us', 'United States': 'us', 'Uruguay': 'uy',
-  'Uzbekistan': 'uz', 'Wales': 'gb-wls',
-}
-
-function getFlagUrl(teamName: string): string | null {
-  const code = COUNTRY_CODE[teamName.trim()]
-  if (!code) return null
-  return `https://flagcdn.com/${code}.svg`
-}
-
-// "Team A/Team B" placeholder (knockout TBD) — show both candidates' flags
-function getFlagUrls(teamName: string): string[] {
-  return teamName.split('/').map(getFlagUrl).filter((u): u is string => !!u)
 }
 
 function getTeamImageUrls(match: Match, isHome: boolean): string[] {

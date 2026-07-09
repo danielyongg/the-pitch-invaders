@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { fetchEspnSummary, normalizeTeamName } from '@/lib/espn'
+import { getFlagUrl } from '@/lib/flags'
 import type { Match } from '@/lib/supabase/types'
 
 interface Props {
@@ -120,8 +121,12 @@ export default async function MatchDetailPage({ params }: Props) {
   const boxscoreTeams: any[] = summary?.boxscore?.teams ?? []
   const homeBox = boxscoreTeams.find(t => isHomeId(t.team.id))
   const awayBox = boxscoreTeams.find(t => !isHomeId(t.team.id))
-  const homeLogo = homeBox?.team?.logo || m.home_team_logo
-  const awayLogo = awayBox?.team?.logo || m.away_team_logo
+  // World Cup: always the real flag from flagcdn.com (same lookup MatchCard
+  // uses), never a provider's "team logo" field — those have repeatedly
+  // turned out to be a stale placeholder crest or a dead CDN host, never an
+  // actual flag.
+  const homeLogo = m.league_id === 77 ? getFlagUrl(m.home_team_name) : (homeBox?.team?.logo || m.home_team_logo)
+  const awayLogo = m.league_id === 77 ? getFlagUrl(m.away_team_name) : (awayBox?.team?.logo || m.away_team_logo)
 
   // Curated subset (user-picked, 2026-07-06) — ESPN doesn't expose Expected
   // Goals, Big Chances Created/Missed, or Duels Won for this data source

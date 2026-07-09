@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// One-off backfill: domestic club logos from the upstream fixture sync were
-// broken (404 host). TheSportsDB's free public key serves stable crest PNGs
-// keyed by team name — no RapidAPI quota spent.
+// One-off backfill: team logos from the upstream fixture sync (livescore's
+// CDN) were broken (404 host) — confirmed for domestic clubs AND World Cup
+// national teams alike, so this now covers every league. TheSportsDB's free
+// public key serves stable crest PNGs keyed by team name — no RapidAPI quota
+// spent.
 const SPORTSDB_KEY = '3'
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
@@ -30,12 +32,15 @@ export async function GET() {
   const { data: matches, error } = await supabase
     .from('matches')
     .select('id, home_team_name, away_team_name')
-    .neq('league_id', 77)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!matches?.length) return NextResponse.json({ ok: true, updated: 0 })
 
-  const teamNames = Array.from(new Set(matches.flatMap(m => [m.home_team_name, m.away_team_name])))
+  // Unresolved World Cup bracket slots ("Winner QF 1", "TeamA/TeamB") aren't
+  // real team names — skip them rather than wasting a lookup that can only
+  // ever come back empty.
+  const isPlaceholder = (name: string) => name.includes('/') || name.startsWith('Winner ') || name.startsWith('Loser ')
+  const teamNames = Array.from(new Set(matches.flatMap(m => [m.home_team_name, m.away_team_name]))).filter(n => !isPlaceholder(n))
   const badgeByName = new Map<string, string>()
 
   for (const name of teamNames) {

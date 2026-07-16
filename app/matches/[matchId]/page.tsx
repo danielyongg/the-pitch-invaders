@@ -577,9 +577,9 @@ export default async function MatchDetailPage({ params }: Props) {
               <div className="space-y-1">
                 {foxLeaderRows.map((row: any) => (
                   <div key={row.label} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs sm:text-sm py-2 border-b border-[var(--glass-05)] last:border-0">
-                    <span className="text-[var(--color-text-primary)] text-right truncate">{row.home?.title} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({row.home?.subtitle})</span></span>
+                    <span className="text-[var(--color-text-primary)] text-left truncate">{row.home?.title} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({row.home?.subtitle})</span></span>
                     <span className="text-[var(--color-text-secondary)] text-[10px] sm:text-xs uppercase tracking-wide px-2 whitespace-nowrap">{row.label}</span>
-                    <span className="text-[var(--color-text-primary)] truncate">{row.away?.title} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({row.away?.subtitle})</span></span>
+                    <span className="text-[var(--color-text-primary)] text-right truncate">{row.away?.title} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({row.away?.subtitle})</span></span>
                   </div>
                 ))}
               </div>

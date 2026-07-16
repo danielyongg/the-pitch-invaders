@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { mapEspnStatus, normalizeTeamName } from '@/lib/espn'
 import { resolveOnexbetMatchHash, resolveTeamHashes, fetchOnexbetStats, fetchOnexbetPreMatch } from '@/lib/onexbet'
+import { generatePregameSummary } from '@/lib/pregame-summary'
 
 // Server-side cooldown to protect RapidAPI quotas, regardless of how many
 // clients poll this endpoint concurrently.
@@ -503,12 +504,16 @@ export async function GET() {
   // (see fillOnexbetPreMatch's guard).
   const { data: upcoming } = await supabase
     .from('matches')
-    .select('id, home_team_name, away_team_name, onexbet_stats')
+    .select('id, api_football_id, kickoff_time, home_team_name, away_team_name, onexbet_stats, pregame_summary')
     .eq('league_id', 77)
     .eq('status', 'NS')
     .gt('kickoff_time', new Date().toISOString())
   for (const row of upcoming ?? []) {
     await fillOnexbetPreMatch(supabase, row.id, apiKey, row.home_team_name, row.away_team_name)
+    if (!row.pregame_summary) {
+      const text = await generatePregameSummary(77, row.api_football_id, row.kickoff_time, row.home_team_name, row.away_team_name)
+      if (text) await supabase.from('matches').update({ pregame_summary: text }).eq('id', row.id)
+    }
   }
 
   // Skip hitting any provider (and burning quota) if no match is actually

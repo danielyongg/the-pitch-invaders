@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { fetchEspnSummary, normalizeTeamName } from '@/lib/espn'
+import { fetchEspnSummary, normalizeTeamName, relatedNewsFor } from '@/lib/espn'
 import { fetchFoxMatchup } from '@/lib/fox'
 import { getFlagUrl } from '@/lib/flags'
 import type { Match } from '@/lib/supabase/types'
@@ -342,18 +342,7 @@ export default async function MatchDetailPage({ params }: Props) {
   const leaders: any[] = summary?.leaders ?? []
   const lastFiveGames: any[] = summary?.lastFiveGames ?? []
 
-  // ESPN tags each news item with the teams it's about — filter the
-  // competition-wide feed down to ones actually mentioning either side,
-  // since the raw feed is the same for every match in the competition.
-  const homeNameNorm = normalizeTeamName(m.home_team_name).toLowerCase()
-  const awayNameNorm = normalizeTeamName(m.away_team_name).toLowerCase()
-  const relatedNews: any[] = (summary?.news?.articles ?? []).filter((a: any) =>
-    (a.categories ?? []).some((c: any) => {
-      if (c.type !== 'team' || !c.description) return false
-      const name = normalizeTeamName(c.description).toLowerCase()
-      return name === homeNameNorm || name === awayNameNorm
-    })
-  )
+  const relatedNews: any[] = relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name)
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">
@@ -450,6 +439,16 @@ export default async function MatchDetailPage({ params }: Props) {
         )
       ) : (
         <div className="space-y-6">
+          {/* Rule-based pre-match preview (World Cup only, see
+              lib/pregame-summary.ts) — filled by sync-live ahead of
+              kickoff, so this just reads whatever's stored. */}
+          {m.pregame_summary && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-3">Match Preview</h2>
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{m.pregame_summary}</p>
+            </section>
+          )}
+
           {/* Stats */}
           {statRows.length > 0 && (
             <section className="glass-card rounded-2xl p-6">

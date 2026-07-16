@@ -100,3 +100,18 @@ export async function fetchEspnSummary(leagueId: number, apiFootballId: number, 
   if (!resolvedId) return null
   return trySummary(resolvedId)
 }
+
+// ESPN tags each news item with the teams it's about — filter the
+// competition-wide feed (same raw list for every match in the competition)
+// down to articles actually mentioning either side of this match.
+export function relatedNewsFor(articles: any[], homeTeam: string, awayTeam: string): any[] {
+  const homeNameNorm = normalizeTeamName(homeTeam).toLowerCase()
+  const awayNameNorm = normalizeTeamName(awayTeam).toLowerCase()
+  return (articles ?? []).filter((a: any) =>
+    (a.categories ?? []).some((c: any) => {
+      if (c.type !== 'team' || !c.description) return false
+      const name = normalizeTeamName(c.description).toLowerCase()
+      return name === homeNameNorm || name === awayNameNorm
+    })
+  )
+}

@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { fetchEspnSummary, normalizeTeamName } from '@/lib/espn'
-import { fetchFoxTeamStats } from '@/lib/fox'
+import { fetchFoxMatchup } from '@/lib/fox'
 import { getFlagUrl } from '@/lib/flags'
 import type { Match } from '@/lib/supabase/types'
 
@@ -229,29 +229,40 @@ export default async function MatchDetailPage({ params }: Props) {
     }
   }).filter((r): r is NonNullable<typeof r> => r != null) : []
 
-  // World Cup only for now (see lib/fox.ts) — pre-match team-stats
-  // comparison scraped from FOX Sports, since ESPN's boxscore is empty
-  // until kickoff. Falls back to the ESPN-derived formStatRows above if
+  // World Cup only for now (see lib/fox.ts) — pre-match team stats/leaders
+  // scraped from FOX Sports, since ESPN's boxscore and leaders are both
+  // empty until kickoff. Falls back to the ESPN-derived rows below if
   // FOX's unofficial API doesn't resolve (id lookup miss, apikey scrape
   // failure, etc).
-  const foxStats = (m.league_id === 77 && statRows.length === 0)
-    ? await fetchFoxTeamStats(m.kickoff_time, m.home_team_name, m.away_team_name)
+  const foxMatchup = (m.league_id === 77 && statRows.length === 0)
+    ? await fetchFoxMatchup(m.kickoff_time, m.home_team_name, m.away_team_name)
     : null
-  const foxLeftIsHome = foxStats ? normalizeTeamName(foxStats.leftEntityLink?.title ?? '').toLowerCase() === normalizeTeamName(m.home_team_name).toLowerCase() : true
-  const foxStatRows = foxStats ? (foxStats.items ?? []).map((item: any) => {
+  const foxLeftIsHome = (block: any) => normalizeTeamName(block?.leftEntityLink?.title ?? '').toLowerCase() === normalizeTeamName(m.home_team_name).toLowerCase()
+  const foxStatsLeftIsHome = foxMatchup?.teamStats ? foxLeftIsHome(foxMatchup.teamStats) : true
+  const foxStatRows = foxMatchup?.teamStats ? (foxMatchup.teamStats.items ?? []).map((item: any) => {
     const leftNum = parseFloat(item.leftItemDetails?.title)
     const rightNum = parseFloat(item.rightItemDetails?.title)
     if (Number.isNaN(leftNum) || Number.isNaN(rightNum)) return null
-    const homeNum = foxLeftIsHome ? leftNum : rightNum
+    const homeNum = foxStatsLeftIsHome ? leftNum : rightNum
     const total = Math.abs(leftNum) + Math.abs(rightNum)
     return {
       label: item.title,
-      homeDisplay: foxLeftIsHome ? item.leftItemDetails.title : item.rightItemDetails.title,
-      awayDisplay: foxLeftIsHome ? item.rightItemDetails.title : item.leftItemDetails.title,
+      homeDisplay: foxStatsLeftIsHome ? item.leftItemDetails.title : item.rightItemDetails.title,
+      awayDisplay: foxStatsLeftIsHome ? item.rightItemDetails.title : item.leftItemDetails.title,
       homeShare: total === 0 ? 50 : (Math.abs(homeNum) / total) * 100,
     }
   }).filter((r: any) => r != null) : []
   const teamStatRows = foxStatRows.length > 0 ? foxStatRows : formStatRows
+
+  // Same shape FOX renders it in: one player per category per team, no
+  // top-N cutoff (categories like "Player of the Match" or "Clean Sheets"
+  // only make sense as a single leader anyway).
+  const foxLeadersLeftIsHome = foxMatchup?.teamLeaders ? foxLeftIsHome(foxMatchup.teamLeaders) : true
+  const foxLeaderRows = foxMatchup?.teamLeaders ? (foxMatchup.teamLeaders.items ?? []).map((item: any) => ({
+    label: item.title,
+    home: foxLeadersLeftIsHome ? item.leftItemDetails : item.rightItemDetails,
+    away: foxLeadersLeftIsHome ? item.rightItemDetails : item.leftItemDetails,
+  })) : []
 
   const rosters: any[] = summary?.rosters ?? []
   const homeRoster = rosters.find(r => isHomeId(r.team.id))
@@ -557,8 +568,23 @@ export default async function MatchDetailPage({ params }: Props) {
             </section>
           ) : null}
 
-          {/* Top performers per team */}
-          {leaders.length > 0 && (
+          {/* Team leaders: FOX comparison (World Cup, pre-match) — one
+              player per category, no top-N cutoff — falling back to ESPN's
+              per-team top-3 goals/assists once match data exists. */}
+          {foxLeaderRows.length > 0 ? (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Team Leaders</h2>
+              <div className="space-y-1">
+                {foxLeaderRows.map((row: any) => (
+                  <div key={row.label} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs sm:text-sm py-2 border-b border-[var(--glass-05)] last:border-0">
+                    <span className="text-[var(--color-text-primary)] text-right truncate">{row.home?.title} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({row.home?.subtitle})</span></span>
+                    <span className="text-[var(--color-text-secondary)] text-[10px] sm:text-xs uppercase tracking-wide px-2 whitespace-nowrap">{row.label}</span>
+                    <span className="text-[var(--color-text-primary)] truncate">{row.away?.title} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({row.away?.subtitle})</span></span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : leaders.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Team Leaders</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -39,10 +39,13 @@ async function resolveFoxEventId(kickoffIso: string, homeTeam: string, awayTeam:
   return null
 }
 
-// Raw teamStatsComparison block from FOX's matchup endpoint — populated
-// pre-match (unlike ESPN's boxscore stats, which are empty until kickoff).
-// Caller resolves left/right against home/away via leftEntityLink.title.
-export async function fetchFoxTeamStats(kickoffIso: string, homeTeam: string, awayTeam: string): Promise<any | null> {
+// Raw teamStatsComparison + teamLeadersComparison blocks from FOX's matchup
+// endpoint — both populated pre-match (unlike ESPN's boxscore/leaders,
+// which are empty until kickoff). Fetched together so the two features that
+// use this (Team Stats, Team Leaders) share one id resolution + apikey
+// scrape instead of paying for it twice. Caller resolves left/right against
+// home/away via leftEntityLink.title.
+export async function fetchFoxMatchup(kickoffIso: string, homeTeam: string, awayTeam: string): Promise<{ teamStats: any; teamLeaders: any } | null> {
   const apiKey = await getFoxApiKey()
   if (!apiKey) return null
   const eventId = await resolveFoxEventId(kickoffIso, homeTeam, awayTeam, apiKey)
@@ -52,5 +55,5 @@ export async function fetchFoxTeamStats(kickoffIso: string, homeTeam: string, aw
   if (!res.ok) return null
   const json = await res.json()
   if (json.fault) return null
-  return json.teamStatsComparison ?? null
+  return { teamStats: json.teamStatsComparison ?? null, teamLeaders: json.teamLeadersComparison ?? null }
 }

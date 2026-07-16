@@ -623,8 +623,8 @@ export default async function MatchDetailPage({ params }: Props) {
                         <div key={ev.id} className="flex items-center gap-2 text-xs sm:text-sm py-1 border-b border-[var(--glass-05)] last:border-0">
                           <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold text-white flex-shrink-0 ${ev.gameResult === 'W' ? 'bg-green-600' : ev.gameResult === 'L' ? 'bg-red-600' : 'bg-gray-500'}`}>{ev.gameResult}</span>
                           <span className="text-[var(--color-text-secondary)] truncate flex-1">{ev.opponent?.displayName}</span>
-                          <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{ev.score}</span>
-                          <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                          <span className="font-bold text-[var(--color-text-primary)] tabular-nums text-right w-10 flex-shrink-0">{ev.score}</span>
+                          <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] whitespace-nowrap text-right w-12 flex-shrink-0">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                         </div>
                       ))}
                     </div>

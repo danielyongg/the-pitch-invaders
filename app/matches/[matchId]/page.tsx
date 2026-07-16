@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { fetchEspnSummary, normalizeTeamName } from '@/lib/espn'
+import { fetchFoxTeamStats } from '@/lib/fox'
 import { getFlagUrl } from '@/lib/flags'
 import type { Match } from '@/lib/supabase/types'
 
@@ -228,6 +229,30 @@ export default async function MatchDetailPage({ params }: Props) {
     }
   }).filter((r): r is NonNullable<typeof r> => r != null) : []
 
+  // World Cup only for now (see lib/fox.ts) — pre-match team-stats
+  // comparison scraped from FOX Sports, since ESPN's boxscore is empty
+  // until kickoff. Falls back to the ESPN-derived formStatRows above if
+  // FOX's unofficial API doesn't resolve (id lookup miss, apikey scrape
+  // failure, etc).
+  const foxStats = (m.league_id === 77 && statRows.length === 0)
+    ? await fetchFoxTeamStats(m.kickoff_time, m.home_team_name, m.away_team_name)
+    : null
+  const foxLeftIsHome = foxStats ? normalizeTeamName(foxStats.leftEntityLink?.title ?? '').toLowerCase() === normalizeTeamName(m.home_team_name).toLowerCase() : true
+  const foxStatRows = foxStats ? (foxStats.items ?? []).map((item: any) => {
+    const leftNum = parseFloat(item.leftItemDetails?.title)
+    const rightNum = parseFloat(item.rightItemDetails?.title)
+    if (Number.isNaN(leftNum) || Number.isNaN(rightNum)) return null
+    const homeNum = foxLeftIsHome ? leftNum : rightNum
+    const total = Math.abs(leftNum) + Math.abs(rightNum)
+    return {
+      label: item.title,
+      homeDisplay: foxLeftIsHome ? item.leftItemDetails.title : item.rightItemDetails.title,
+      awayDisplay: foxLeftIsHome ? item.rightItemDetails.title : item.leftItemDetails.title,
+      homeShare: total === 0 ? 50 : (Math.abs(homeNum) / total) * 100,
+    }
+  }).filter((r: any) => r != null) : []
+  const teamStatRows = foxStatRows.length > 0 ? foxStatRows : formStatRows
+
   const rosters: any[] = summary?.rosters ?? []
   const homeRoster = rosters.find(r => isHomeId(r.team.id))
   const awayRoster = rosters.find(r => !isHomeId(r.team.id))
@@ -436,12 +461,13 @@ export default async function MatchDetailPage({ params }: Props) {
             </section>
           )}
 
-          {/* Tournament form (pre-match only) */}
-          {formStatRows.length > 0 && (
+          {/* Team stats (pre-match only): FOX comparison for World Cup, ESPN
+              tournament-form average as fallback for everything else */}
+          {teamStatRows.length > 0 && (
             <section className="glass-card rounded-2xl p-6">
               <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Team Stats</h2>
               <div className="space-y-4">
-                {formStatRows.map(s => (
+                {teamStatRows.map((s: any) => (
                   <div key={s.label}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{s.homeDisplay}</span>

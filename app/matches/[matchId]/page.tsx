@@ -303,6 +303,8 @@ export default async function MatchDetailPage({ params }: Props) {
   const awayReds = redCardsFor(m.away_team_name)
 
   const h2hEvents: any[] = summary?.headToHeadGames?.[0]?.events ?? []
+  const leaders: any[] = summary?.leaders ?? []
+  const lastFiveGames: any[] = summary?.lastFiveGames ?? []
 
   // ESPN tags each news item with the teams it's about — filter the
   // competition-wide feed down to ones actually mentioning either side,
@@ -528,6 +530,56 @@ export default async function MatchDetailPage({ params }: Props) {
               </div>
             </section>
           ) : null}
+
+          {/* Top performers per team */}
+          {leaders.length > 0 && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Team Leaders</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {leaders.map((t: any) => (
+                  <div key={t.team.id}>
+                    <div className="text-sm font-bold text-[var(--color-text-primary)] mb-2">{t.team.displayName}</div>
+                    <div className="space-y-1">
+                      {t.leaders.map((cat: any) => {
+                        const lead = cat.leaders?.[0]
+                        if (!lead) return null
+                        return (
+                          <div key={cat.name} className="flex items-center justify-between text-xs sm:text-sm py-1 border-b border-[var(--glass-05)] last:border-0">
+                            <span className="text-[var(--color-text-secondary)]">{cat.displayName}</span>
+                            <span className="text-[var(--color-text-primary)] text-right truncate ml-2">{lead.athlete?.shortName ?? lead.athlete?.displayName} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({lead.mainStat?.value}{lead.mainStat?.label})</span></span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Recent form */}
+          {lastFiveGames.length > 0 && (
+            <section className="glass-card rounded-2xl p-6">
+              <h2 className="font-[var(--font-anybody)] font-semibold text-xl text-[var(--color-text-primary)] mb-4">Recent Form</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {lastFiveGames.map((t: any) => (
+                  <div key={t.team.id}>
+                    <div className="text-sm font-bold text-[var(--color-text-primary)] mb-2">{t.team.displayName}</div>
+                    <div className="space-y-1">
+                      {t.events.map((ev: any) => (
+                        <div key={ev.id} className="flex items-center gap-2 text-xs sm:text-sm py-1 border-b border-[var(--glass-05)] last:border-0">
+                          <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold text-white flex-shrink-0 ${ev.gameResult === 'W' ? 'bg-green-600' : ev.gameResult === 'L' ? 'bg-red-600' : 'bg-gray-500'}`}>{ev.gameResult}</span>
+                          <span className="text-[var(--color-text-secondary)] truncate flex-1">{ev.opponent?.displayName}</span>
+                          <span className="font-bold text-[var(--color-text-primary)] tabular-nums">{ev.score}</span>
+                          <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] whitespace-nowrap">{new Date(ev.gameDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Head to head */}
           {h2hEvents.length > 0 && (

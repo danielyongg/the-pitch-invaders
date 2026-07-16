@@ -539,17 +539,18 @@ export default async function MatchDetailPage({ params }: Props) {
                 {leaders.map((t: any) => (
                   <div key={t.team.id}>
                     <div className="text-sm font-bold text-[var(--color-text-primary)] mb-2">{t.team.displayName}</div>
-                    <div className="space-y-1">
-                      {t.leaders.map((cat: any) => {
-                        const lead = cat.leaders?.[0]
-                        if (!lead) return null
-                        return (
-                          <div key={cat.name} className="flex items-center justify-between text-xs sm:text-sm py-1 border-b border-[var(--glass-05)] last:border-0">
-                            <span className="text-[var(--color-text-secondary)]">{cat.displayName}</span>
-                            <span className="text-[var(--color-text-primary)] text-right truncate ml-2">{lead.athlete?.shortName ?? lead.athlete?.displayName} <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)]">({lead.mainStat?.value}{lead.mainStat?.label})</span></span>
-                          </div>
-                        )
-                      })}
+                    <div className="space-y-3">
+                      {t.leaders.filter((cat: any) => cat.name === 'goalsLeaders' || cat.name === 'assistsLeaders').map((cat: any) => (
+                        <div key={cat.name}>
+                          <div className="text-[var(--color-text-secondary)] text-xs mb-1">{cat.displayName}</div>
+                          {(cat.leaders ?? []).slice(0, 3).map((lead: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between text-xs sm:text-sm py-1 border-b border-[var(--glass-05)] last:border-0">
+                              <span className="text-[var(--color-text-primary)] truncate">{lead.athlete?.shortName ?? lead.athlete?.displayName}</span>
+                              <span className="text-[var(--color-text-muted)] font-[var(--font-jetbrains)] ml-2">{lead.mainStat?.value}{lead.mainStat?.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}

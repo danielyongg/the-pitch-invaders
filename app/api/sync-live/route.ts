@@ -194,7 +194,7 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
   let scored = 0
   const errors: string[] = []
   for (const u of updates) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('matches')
       .update({
         status: u.status,
@@ -210,6 +210,31 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
     if (error) {
       errors.push(`${u.homeTeam} vs ${u.awayTeam}: ${error.message}`)
       continue
+    }
+
+    // A provider's home/away assignment can disagree with our fixture's
+    // original orientation (confirmed on ESPN: Morocco/France stored as
+    // home/away here, but ESPN reports France as home) — retry with teams
+    // and scores flipped before concluding this match isn't in our DB.
+    if ((data?.length ?? 0) === 0) {
+      const swap = await supabase
+        .from('matches')
+        .update({
+          status: u.status,
+          home_score: u.awayScore,
+          away_score: u.homeScore,
+          home_penalty_score: u.awayPenaltyScore ?? null,
+          away_penalty_score: u.homePenaltyScore ?? null,
+        })
+        .eq('league_id', 77)
+        .ilike('home_team_name', normalizeTeamName(u.awayTeam))
+        .ilike('away_team_name', normalizeTeamName(u.homeTeam))
+        .select('id')
+      if (swap.error) {
+        errors.push(`${u.homeTeam} vs ${u.awayTeam}: ${swap.error.message}`)
+        continue
+      }
+      data = swap.data
     }
     updated += data?.length ?? 0
 
@@ -245,17 +270,8 @@ function map365StatusText(text: string, gameTimeDisplay?: string): string {
   return gameTimeDisplay || text
 }
 
-async function try365Scores(apiKey: string): Promise<ScoreUpdate[] | null> {
+async function try365Scores(apiKey: string, dates: string[]): Promise<ScoreUpdate[] | null> {
   const HOST = '365scores.p.rapidapi.com'
-
-  // Fetch today and yesterday to catch matches that kicked off late and
-  // finished after the date rolled over
-  const dates: string[] = []
-  for (let i = -1; i <= 0; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
-    dates.push(d.toISOString().slice(0, 10))
-  }
 
   const updates: ScoreUpdate[] = []
   let sawWorldCup = false
@@ -296,17 +312,11 @@ function mapLivescore6Status(eps: string): string {
   return eps
 }
 
-async function tryLivescore6(apiKey: string): Promise<ScoreUpdate[] | null> {
+async function tryLivescore6(apiKey: string, dates: string[]): Promise<ScoreUpdate[] | null> {
   const HOST = 'livescore6.p.rapidapi.com'
-  const dates: string[] = []
-  for (let i = -1; i <= 0; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
-    dates.push(d.toISOString().slice(0, 10).replace(/-/g, ''))
-  }
 
   const updates: ScoreUpdate[] = []
-  for (const date of dates) {
+  for (const date of dates.map(d => d.replace(/-/g, ''))) {
     const url = `https://${HOST}/matches/v2/list-by-date?Category=soccer&Date=${date}&Timezone=0`
     const res = await fetch(url, { headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': HOST }, next: { revalidate: 0 } })
     if (!res.ok) return updates.length ? updates : null
@@ -417,17 +427,10 @@ function mapFootballDataIoStatus(m: any): string {
   return m.status_localized || m.status || 'LIVE'
 }
 
-async function tryFootballDataIo(): Promise<ScoreUpdate[] | null> {
+async function tryFootballDataIo(_key: string, dates: string[]): Promise<ScoreUpdate[] | null> {
   const apiKey = process.env.FOOTBALLDATA_IO_KEY
   if (!apiKey) return null
   const WORLD_CUP_LEAGUE_ID = 50
-
-  const dates: string[] = []
-  for (let i = -1; i <= 0; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
-    dates.push(d.toISOString().slice(0, 10))
-  }
 
   const updates: ScoreUpdate[] = []
   for (const date of dates) {
@@ -456,16 +459,9 @@ async function tryFootballDataIo(): Promise<ScoreUpdate[] | null> {
 // free-football-api-data/footballdata.io it exposes penalty shootout scores
 // directly (`shootoutScore`), so knockout winners resolve correctly here
 // without waiting on a fallback.
-async function tryEspn(): Promise<ScoreUpdate[] | null> {
-  const dates: string[] = []
-  for (let i = -1; i <= 0; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
-    dates.push(d.toISOString().slice(0, 10).replace(/-/g, ''))
-  }
-
+async function tryEspn(_key: string, dates: string[]): Promise<ScoreUpdate[] | null> {
   const updates: ScoreUpdate[] = []
-  for (const date of dates) {
+  for (const date of dates.map(d => d.replace(/-/g, ''))) {
     const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${date}`
     const res = await fetch(url, { next: { revalidate: 0 } })
     if (!res.ok) continue
@@ -517,18 +513,31 @@ export async function GET() {
 
   // Skip hitting any provider (and burning quota) if no match is actually
   // pending an update — e.g. no live match and nothing kicked off yet.
-  const { count: activeCount } = await supabase
+  const { data: activeMatches } = await supabase
     .from('matches')
-    .select('id', { count: 'exact', head: true })
+    .select('kickoff_time')
     .not('status', 'in', '(FT,AET,PEN)')
     .lte('kickoff_time', new Date().toISOString())
 
-  if (!activeCount) {
+  if (!activeMatches || activeMatches.length === 0) {
     lastResult = { ok: true, source: null, updated: 0, scored: 0, errors: [], skipped: 'no active matches' }
     return NextResponse.json(lastResult)
   }
 
-  const providers: [string, (key: string) => Promise<ScoreUpdate[] | null>][] = [
+  // Providers only expose scores for the dates queried. Always check
+  // today/yesterday for matches currently in progress, plus the kickoff date
+  // of every stuck match — otherwise a match whose kickoff date this job
+  // never ran a sync for stays stuck at its pre-kickoff status forever.
+  const dates = new Set<string>()
+  for (const offset of [-1, 0]) {
+    const d = new Date()
+    d.setDate(d.getDate() + offset)
+    dates.add(d.toISOString().slice(0, 10))
+  }
+  for (const m of activeMatches) dates.add(m.kickoff_time.slice(0, 10))
+  const dateList = [...dates]
+
+  const providers: [string, (key: string, dates: string[]) => Promise<ScoreUpdate[] | null>][] = [
     ['espn', tryEspn],
     ['365scores', try365Scores],
     ['livescore6', tryLivescore6],
@@ -539,7 +548,7 @@ export async function GET() {
 
   for (const [source, fn] of providers) {
     try {
-      const updates = await fn(apiKey)
+      const updates = await fn(apiKey, dateList)
       if (updates && updates.length > 0) {
         const { updated, scored, errors } = await applyUpdates(supabase, updates, apiKey)
         lastResult = { ok: true, source, updated, scored, errors }

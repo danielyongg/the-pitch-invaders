@@ -39,13 +39,13 @@ export default async function Navbar() {
             <Image
               src="/TPI New Logo - Transparant.png"
               alt="The Pitch Invaders Logo"
-              width={36}
-              height={36}
+              width={44}
+              height={44}
               className="object-contain flex-shrink-0 sm:w-12 sm:h-12"
             />
             <div className="flex flex-col whitespace-nowrap">
               <span
-                className="font-extrabold text-sm sm:text-lg tracking-tight leading-tight"
+                className="font-extrabold text-lg sm:text-lg tracking-tight leading-tight"
                 style={{
                   fontFamily: 'var(--font-anybody), sans-serif',
                   fontVariationSettings: '"wdth" 100',
@@ -55,7 +55,7 @@ export default async function Navbar() {
                 The Pitch Invaders
               </span>
               <span
-                className="block text-[7px] xs:text-[8px] sm:text-[10px] tracking-[0.5px] sm:tracking-[1px] uppercase"
+                className="block text-[9px] xs:text-[9px] sm:text-[10px] tracking-[0.5px] sm:tracking-[1px] uppercase"
                 style={{ fontFamily: 'var(--font-jetbrains), monospace', color: 'var(--color-text-secondary)' }}
               >
                 Your Sports League Simulator

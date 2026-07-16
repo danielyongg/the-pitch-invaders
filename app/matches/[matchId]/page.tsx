@@ -78,8 +78,8 @@ function PlayerChip({ p, teamColor, rating, onPitch = true }: { p: any; teamColo
   const red = p.stats?.find((s: any) => s.name === 'redCards')?.value ?? 0
   const bg = teamColor ? `#${teamColor}` : '#aec6ff'
   return (
-    <div className="flex flex-col items-center gap-1 w-16">
-      <div className="relative w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white/70" style={{ background: bg, color: contrastText(teamColor) }}>
+    <div className="flex flex-col items-center gap-1 w-12 sm:w-16">
+      <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm border-2 border-white/70" style={{ background: bg, color: contrastText(teamColor) }}>
         {p.jersey}
         {red > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-red-600 rounded-sm border border-white" />}
         {!red && yellow > 0 && <span className="absolute -top-1 -right-1 w-3 h-4 bg-yellow-400 rounded-sm border border-white" />}
@@ -491,9 +491,9 @@ export default async function MatchDetailPage({ params }: Props) {
                   return (
                     <div key={idx}>
                       <div className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{roster.team.displayName} — {roster.formation ?? '—'}</div>
-                      <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-4 flex flex-col-reverse justify-evenly gap-4 mt-3 min-h-[420px]">
+                      <div className="rounded-xl bg-gradient-to-b from-[#1e5c34] to-[#164023] p-2 sm:p-4 flex flex-col-reverse justify-evenly gap-4 mt-3 min-h-[420px] overflow-hidden">
                         {pitchRows(roster.roster.filter((p: any) => p.starter)).map((row, rIdx) => (
-                          <div key={rIdx} className="flex justify-center gap-6 sm:gap-10">
+                          <div key={rIdx} className="flex justify-center gap-1 sm:gap-10">
                             {row.map((p: any) => <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} rating={ratingFor(p)} />)}
                           </div>
                         ))}
@@ -501,7 +501,7 @@ export default async function MatchDetailPage({ params }: Props) {
                       {roster.roster.some((p: any) => !p.starter) && (
                         <div className="mt-4">
                           <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] uppercase tracking-wide mb-2">Substitutes</div>
-                          <div className="flex flex-wrap gap-3">
+                          <div className="grid grid-cols-4 gap-3 justify-items-center">
                             {roster.roster.filter((p: any) => !p.starter).map((p: any) => (
                               <PlayerChip key={p.athlete.id} p={p} teamColor={roster.team.color} rating={ratingFor(p)} onPitch={false} />
                             ))}

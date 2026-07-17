@@ -29,7 +29,12 @@ export async function fetchTeamNews(teamName: string): Promise<any[]> {
   }
 
   try {
-    const res = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&q=${encodeURIComponent(`"${teamName}"`)}&language=en&category=sports`)
+    // qInTitle + AND "World Cup" — a bare team-name search (q=) matches the
+    // word anywhere in the body, which pulls in unrelated golf/cycling/stock
+    // articles that happen to mention the country. Restricting to the title
+    // and requiring "World Cup" keeps results to actual match coverage.
+    const q = encodeURIComponent(`"${teamName}" AND "World Cup"`)
+    const res = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&qInTitle=${q}&language=en`)
     if (!res.ok) return cached?.articles ?? []
     const json = await res.json()
     const articles = normalize(json.results ?? [])

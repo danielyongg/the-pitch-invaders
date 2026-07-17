@@ -345,7 +345,9 @@ export default async function MatchDetailPage({ params }: Props) {
 
   const [homeTeamNews, awayTeamNews] = await Promise.all([fetchTeamNews(m.home_team_name), fetchTeamNews(m.away_team_name)])
   const allNews = [...relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name), ...homeTeamNews, ...awayTeamNews]
-  const relatedNews: any[] = [...new Map(allNews.map(a => [a.id, a])).values()]
+  // Dedupe by normalized headline, not id — syndicated copies of the same
+  // story from Newsdata.io get different article_ids per source outlet.
+  const relatedNews: any[] = [...new Map(allNews.map(a => [String(a.headline).toLowerCase().trim(), a])).values()]
     .sort((a, b) => new Date(b.published ?? 0).getTime() - new Date(a.published ?? 0).getTime())
 
   return (

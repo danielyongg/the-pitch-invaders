@@ -15,6 +15,9 @@ const BETTING_RE = /\b(bet|betting|bets|sportsbook|odds|wager|bonus code|free be
 // category listing — most of the rest are small local newspapers unrelated
 // to football coverage.
 const SOURCES = 'espn,bbc,skysports,caughtoffside'
+// Newsdata's own source_name field is unreliably capitalized ("The Bbc") —
+// display names for the same allowlist above.
+const SOURCE_NAMES: Record<string, string> = { espn: 'ESPN', bbc: 'BBC', skysports: 'Sky Sports', caughtoffside: 'CaughtOffside' }
 
 // Normalized to the same shape ESPN's relatedNewsFor() articles already
 // render with (id/headline/published/links.web.href/images[0].url), so the
@@ -28,6 +31,7 @@ function normalize(results: any[]): any[] {
       published: r.pubDate ? `${r.pubDate.replace(' ', 'T')}Z` : null,
       links: { web: { href: r.link } },
       images: r.image_url ? [{ url: r.image_url }] : [],
+      source: SOURCE_NAMES[r.source_id] ?? r.source_id,
     }))
 }
 

@@ -344,7 +344,8 @@ export default async function MatchDetailPage({ params }: Props) {
   const lastFiveGames: any[] = summary?.lastFiveGames ?? []
 
   const [homeTeamNews, awayTeamNews] = await Promise.all([fetchTeamNews(m.home_team_name), fetchTeamNews(m.away_team_name)])
-  const allNews = [...relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name), ...homeTeamNews, ...awayTeamNews]
+  const espnNews = relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name).map((a: any) => ({ ...a, source: 'ESPN' }))
+  const allNews = [...espnNews, ...homeTeamNews, ...awayTeamNews]
   // Dedupe by normalized headline, not id — syndicated copies of the same
   // story from Newsdata.io get different article_ids per source outlet, and
   // some outlets append their own name ("... - The Straits Times") to an
@@ -681,6 +682,7 @@ export default async function MatchDetailPage({ params }: Props) {
                       <div className="text-sm font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent-text)] leading-snug">{a.headline}</div>
                       <div className="text-xs text-[var(--color-text-muted)] font-[var(--font-jetbrains)] mt-1">
                         {new Date(a.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {a.source && ` · ${a.source}`}
                       </div>
                     </div>
                   </a>

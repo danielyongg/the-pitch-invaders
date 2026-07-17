@@ -35,7 +35,17 @@ function normalize(results: any[]): any[] {
     }))
 }
 
-export async function fetchTeamNews(teamName: string): Promise<any[]> {
+// National-team names (World Cup) double as country names — "England"/
+// "France" match cricket, rugby, and general BBC news within the same
+// football-outlet domain allowlist (e.g. "Root leads England to victory"
+// against India, or a policy story just set in England). Club names
+// (Arsenal, Wrexham, ...) aren't ambiguous this way, and requiring a
+// football keyword on those returns nothing — headlines like "Arsenal
+// agree fee to sign Greek winger" never say the word "football" — so the
+// extra disambiguation only applies when leagueId is the World Cup's.
+const WORLD_CUP_LEAGUE_ID = 77
+
+export async function fetchTeamNews(teamName: string, leagueId: number): Promise<any[]> {
   const apiKey = process.env.NEWSDATA_API_KEY
   if (!apiKey) return []
 
@@ -46,11 +56,12 @@ export async function fetchTeamNews(teamName: string): Promise<any[]> {
   }
 
   try {
-    // qInTitle + AND "World Cup" — a bare team-name search (q=) matches the
-    // word anywhere in the body, which pulls in unrelated golf/cycling/stock
-    // articles that happen to mention the country. Restricting to the title
-    // and requiring "World Cup" keeps results to actual match coverage.
-    const q = encodeURIComponent(`"${teamName}" AND "World Cup"`)
+    // qInTitle (not a bare q= body search, which matched the team name
+    // anywhere in the article and pulled in unrelated golf/cycling/stock
+    // pieces that just mentioned the country).
+    const q = leagueId === WORLD_CUP_LEAGUE_ID
+      ? encodeURIComponent(`"${teamName}" AND ("World Cup" OR football OR soccer)`)
+      : encodeURIComponent(`"${teamName}"`)
     const res = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&qInTitle=${q}&language=en&domain=${SOURCES}`)
     if (!res.ok) return cached?.articles ?? []
     const json = await res.json()

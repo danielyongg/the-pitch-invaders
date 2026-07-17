@@ -343,7 +343,7 @@ export default async function MatchDetailPage({ params }: Props) {
   const leaders: any[] = summary?.leaders ?? []
   const lastFiveGames: any[] = summary?.lastFiveGames ?? []
 
-  const [homeTeamNews, awayTeamNews] = await Promise.all([fetchTeamNews(m.home_team_name), fetchTeamNews(m.away_team_name)])
+  const [homeTeamNews, awayTeamNews] = await Promise.all([fetchTeamNews(m.home_team_name, m.league_id), fetchTeamNews(m.away_team_name, m.league_id)])
   const espnNews = relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name).map((a: any) => ({ ...a, source: 'ESPN' }))
   const allNews = [...espnNews, ...homeTeamNews, ...awayTeamNews]
   // Dedupe by normalized headline, not id — syndicated copies of the same

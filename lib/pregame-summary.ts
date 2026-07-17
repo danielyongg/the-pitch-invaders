@@ -182,10 +182,13 @@ function buildTemplateSummary(homeTeam: string, awayTeam: string, summary: any, 
   return sentences.length > 0 ? sentences.join(' ') : null
 }
 
-// World Cup uses FOX (teamStats/teamLeaders); Club Friendlies uses Fotmob
-// (h2h/teamForm) since FOX doesn't index friendlies at all (confirmed
-// 2026-07-17). Neither source covers the 5 leagues yet — this returns null
-// rather than a near-empty paragraph when neither has data for the match.
+// FOX tried first (has richer per-game-average stats/leaders, but only
+// covers the World Cup — and even there, only once teams have played
+// enough games for those averages to exist). Falls back to Fotmob
+// (h2h/teamForm) for everything else — Club Friendlies (FOX has zero
+// coverage) and the 5 leagues (FOX resolves the fixture but its stats
+// blocks are empty for e.g. each season's early matchdays). Returns null
+// rather than a near-empty paragraph if neither has anything.
 export async function generatePregameSummary(leagueId: number, apiFootballId: number, kickoffIso: string, homeTeam: string, awayTeam: string): Promise<string | null> {
   const [summary, fox] = await Promise.all([
     fetchEspnSummary(leagueId, apiFootballId, kickoffIso, homeTeam, awayTeam),

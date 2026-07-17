@@ -502,11 +502,12 @@ export async function GET() {
   // every cycle regardless of whether a match is currently live — separate
   // from the score-update path below, and each row is only ever filled once
   // (see fillOnexbetPreMatch's guard). pregame_summary generation runs for
-  // Club Friendlies too (league_id 100) — 1xBet stays World Cup-only.
+  // every competition (77 WC, 100 Club Friendlies, 47/87/54/55/53 the 5
+  // European leagues) — 1xBet fill stays World Cup-only.
   const { data: upcoming } = await supabase
     .from('matches')
     .select('id, league_id, api_football_id, kickoff_time, home_team_name, away_team_name, onexbet_stats, pregame_summary')
-    .in('league_id', [77, 100])
+    .in('league_id', [77, 100, 47, 87, 54, 55, 53])
     .eq('status', 'NS')
     .gt('kickoff_time', new Date().toISOString())
   for (const row of upcoming ?? []) {

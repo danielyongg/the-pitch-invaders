@@ -8,7 +8,7 @@ const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
 // Compact facts sheet, not JSON — cheaper on tokens and the model reads a
 // short bullet list just as well as a schema for a task this small.
-function buildFacts(homeTeam: string, awayTeam: string, summary: any, fox: any): string {
+function buildFacts(homeTeam: string, awayTeam: string, summary: any, fox: any, espnHomeId: string | number | undefined): string {
   const lines: string[] = []
 
   const statItems = fox?.teamStats?.items ?? []
@@ -30,8 +30,13 @@ function buildFacts(homeTeam: string, awayTeam: string, summary: any, fox: any):
 
   const h2h = summary?.headToHeadGames?.[0]?.events ?? []
   if (h2h.length > 0) {
-    lines.push('\nHead-to-head history:')
-    for (const e of h2h) lines.push(`- ${e.homeTeamScore}-${e.awayTeamScore} (${new Date(e.gameDate).toISOString().slice(0, 10)})`)
+    lines.push('\nHead-to-head history (score always given as this match\'s home team first, away team second, regardless of who hosted that particular game):')
+    for (const e of h2h) {
+      const homeWasHome = String(e.homeTeamId) === String(espnHomeId)
+      const homeScore = homeWasHome ? e.homeTeamScore : e.awayTeamScore
+      const awayScore = homeWasHome ? e.awayTeamScore : e.homeTeamScore
+      lines.push(`- ${homeTeam} ${homeScore}-${awayScore} ${awayTeam} (${new Date(e.gameDate).toISOString().slice(0, 10)})`)
+    }
   }
 
   const news = relatedNewsFor(summary?.news?.articles ?? [], homeTeam, awayTeam).slice(0, 5)
@@ -131,7 +136,8 @@ export async function generatePregameSummary(leagueId: number, apiFootballId: nu
 
   const groqKey = process.env.GROQ_API_KEY
   if (groqKey) {
-    const facts = buildFacts(homeTeam, awayTeam, summary, fox)
+    const espnHomeId = summary?.header?.competitions?.[0]?.competitors?.find((c: any) => c.homeAway === 'home')?.team?.id
+    const facts = buildFacts(homeTeam, awayTeam, summary, fox, espnHomeId)
     const generated = await generateWithGroq(groqKey, homeTeam, awayTeam, facts)
     if (generated) return generated
   }

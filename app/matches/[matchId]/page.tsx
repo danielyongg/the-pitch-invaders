@@ -346,8 +346,12 @@ export default async function MatchDetailPage({ params }: Props) {
   const [homeTeamNews, awayTeamNews] = await Promise.all([fetchTeamNews(m.home_team_name), fetchTeamNews(m.away_team_name)])
   const allNews = [...relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name), ...homeTeamNews, ...awayTeamNews]
   // Dedupe by normalized headline, not id — syndicated copies of the same
-  // story from Newsdata.io get different article_ids per source outlet.
-  const relatedNews: any[] = [...new Map(allNews.map(a => [String(a.headline).toLowerCase().trim(), a])).values()]
+  // story from Newsdata.io get different article_ids per source outlet, and
+  // some outlets append their own name ("... - The Straits Times") to an
+  // otherwise identical headline, so strip a trailing " - X"/" | X" suffix
+  // before comparing.
+  const dedupeKey = (headline: string) => String(headline).toLowerCase().trim().replace(/\s+[-|–]\s+[^-|–]{2,40}$/, '')
+  const relatedNews: any[] = [...new Map(allNews.map(a => [dedupeKey(a.headline), a])).values()]
     .sort((a, b) => new Date(b.published ?? 0).getTime() - new Date(a.published ?? 0).getTime())
 
   return (
@@ -668,8 +672,10 @@ export default async function MatchDetailPage({ params }: Props) {
               <div className="space-y-4">
                 {relatedNews.map((a: any) => (
                   <a key={a.id} href={a.links?.web?.href} target="_blank" rel="noopener noreferrer" className="flex gap-3 group">
-                    {a.images?.[0]?.url && (
+                    {a.images?.[0]?.url ? (
                       <img src={a.images[0].url} alt="" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />
+                    ) : (
+                      <div className="w-24 h-16 rounded-lg flex-shrink-0 bg-[var(--color-input)] flex items-center justify-center text-xl">📰</div>
                     )}
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent-text)] leading-snug">{a.headline}</div>

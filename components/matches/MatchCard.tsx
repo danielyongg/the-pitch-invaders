@@ -6,6 +6,7 @@ import KickoffCountdown from './KickoffCountdown'
 import PredictionInput from '@/components/predictions/PredictionInput'
 import type { Match, Prediction } from '@/lib/supabase/types'
 import { getFlagUrls } from '@/lib/flags'
+import { LEAGUE_COLORS } from '@/lib/league-colors'
 
 const ROUND_LABELS: Record<string, string> = {
   group: 'Group Stage',
@@ -26,17 +27,6 @@ const LEAGUE_NAMES: Record<number, string> = {
   55: 'Serie A',
   53: 'Ligue 1',
   100: 'Club Friendlies',
-}
-
-// Each league's primary brand color, for the header pill
-const LEAGUE_COLORS: Record<number, { bg: string; text: string }> = {
-  77: { bg: '#00408f', text: '#aec6ff' },
-  47: { bg: '#3d195b', text: '#e6cdfb' },
-  87: { bg: '#8c1c40', text: '#ffc9dd' },
-  54: { bg: '#7a0017', text: '#ffb3bd' },
-  55: { bg: '#024494', text: '#a9d4ff' },
-  53: { bg: '#091c3e', text: '#9fc1ff' },
-  100: { bg: '#3a3a3a', text: '#d4d4d4' },
 }
 
 function getTeamImageUrls(match: Match, isHome: boolean): string[] {

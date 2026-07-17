@@ -357,7 +357,7 @@ export default async function MatchDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">
-      <a href="/matches" className="text-sm text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide">
+      <a href="/competitions" className="text-sm text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide">
         ← Back to Matches
       </a>
 

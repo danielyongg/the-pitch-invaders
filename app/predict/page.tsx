@@ -112,7 +112,7 @@ export default async function PredictPage() {
         <div className="text-center py-20 text-[var(--color-text-secondary)]">
           <div className="text-4xl mb-3">🎯</div>
           <p className="text-[var(--color-text-primary)] font-medium mb-2">No predictions yet</p>
-          <a href="/matches" className="mt-3 inline-block text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide text-sm">
+          <a href="/competitions" className="mt-3 inline-block text-[var(--color-accent-text)] hover:text-[var(--color-accent-hover)] font-[var(--font-jetbrains)] tracking-wide text-sm">
             Browse matches →
           </a>
         </div>

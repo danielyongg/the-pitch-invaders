@@ -128,7 +128,7 @@ export default async function HomePage() {
                 Join for Free
               </Link>
               <Link
-                href="/matches"
+                href="/competitions"
                 className="px-6 sm:px-10 py-3 sm:py-4 rounded-xl transition font-bold text-base sm:text-2xl"
                 style={{
                   fontFamily: F.display,
@@ -270,7 +270,7 @@ export default async function HomePage() {
             </p>
           </div>
           <Link
-            href="/matches"
+            href="/competitions"
             className="text-sm transition hover:opacity-80"
             style={{ fontFamily: F.mono, color: 'var(--color-accent-text)', letterSpacing: '0.7px' }}
           >

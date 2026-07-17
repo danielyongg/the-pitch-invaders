@@ -64,7 +64,7 @@ export default async function Navbar() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-6 whitespace-nowrap">
-            <NavLink href="/matches" label="Matches" />
+            <NavLink href="/competitions" label="Matches" />
             <NavLink href="/leaderboard" label="Leaderboard" />
             {user && <NavLink href="/leagues" label="Private Leagues" />}
             {user && <NavLink href="/predict" label="My Predictions" />}
@@ -117,7 +117,7 @@ export default async function Navbar() {
           )}
           <MobileMenu
             items={[
-              { href: '/matches', label: 'Matches' },
+              { href: '/competitions', label: 'Matches' },
               { href: '/leaderboard', label: 'Leaderboard' },
               ...(user ? [{ href: '/leagues', label: 'Private Leagues' }, { href: '/predict', label: 'My Predictions' }] : [{ href: '/auth/login', label: 'Sign In' }]),
             ]}

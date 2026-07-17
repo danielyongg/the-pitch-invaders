@@ -501,21 +501,37 @@ export async function GET() {
   // already known (bracket seed resolved) but haven't kicked off yet. Runs
   // every cycle regardless of whether a match is currently live — separate
   // from the score-update path below, and each row is only ever filled once
-  // (see fillOnexbetPreMatch's guard). pregame_summary generation runs for
-  // every competition (77 WC, 100 Club Friendlies, 47/87/54/55/53 the 5
-  // European leagues) — 1xBet fill stays World Cup-only.
-  const { data: upcoming } = await supabase
+  // (see fillOnexbetPreMatch's guard). World Cup only, and few rows ever
+  // (48-team bracket), so no cap needed here.
+  const { data: onexbetUpcoming } = await supabase
     .from('matches')
-    .select('id, league_id, api_football_id, kickoff_time, home_team_name, away_team_name, onexbet_stats, pregame_summary')
+    .select('id, home_team_name, away_team_name')
+    .eq('league_id', 77)
+    .eq('status', 'NS')
+    .gt('kickoff_time', new Date().toISOString())
+  for (const row of onexbetUpcoming ?? []) {
+    await fillOnexbetPreMatch(supabase, row.id, apiKey, row.home_team_name, row.away_team_name)
+  }
+
+  // pregame_summary generation, all 7 competitions (77 WC, 100 Club
+  // Friendlies, 47/87/54/55/53 the 5 European leagues). Ordered soonest-first
+  // + capped: with the 5 leagues in scope this is ~1800 not-yet-generated
+  // rows at once (mostly leagues whose season is months out) — without a
+  // limit, every cron tick would walk the whole backlog sequentially (ESPN +
+  // FOX + Fotmob per row) and risk a function timeout. The cap clears the
+  // nearest-kickoff backlog first across repeated daily runs.
+  const { data: needsSummary } = await supabase
+    .from('matches')
+    .select('id, league_id, api_football_id, kickoff_time, home_team_name, away_team_name')
     .in('league_id', [77, 100, 47, 87, 54, 55, 53])
     .eq('status', 'NS')
     .gt('kickoff_time', new Date().toISOString())
-  for (const row of upcoming ?? []) {
-    if (row.league_id === 77) await fillOnexbetPreMatch(supabase, row.id, apiKey, row.home_team_name, row.away_team_name)
-    if (!row.pregame_summary) {
-      const text = await generatePregameSummary(row.league_id, row.api_football_id, row.kickoff_time, row.home_team_name, row.away_team_name)
-      if (text) await supabase.from('matches').update({ pregame_summary: text }).eq('id', row.id)
-    }
+    .is('pregame_summary', null)
+    .order('kickoff_time', { ascending: true })
+    .limit(30)
+  for (const row of needsSummary ?? []) {
+    const text = await generatePregameSummary(row.league_id, row.api_football_id, row.kickoff_time, row.home_team_name, row.away_team_name)
+    if (text) await supabase.from('matches').update({ pregame_summary: text }).eq('id', row.id)
   }
 
   // Skip hitting any provider (and burning quota) if no match is actually

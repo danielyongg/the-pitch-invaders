@@ -5,17 +5,25 @@ import { createAdminClient } from './supabase/admin'
 // fetch per TTL window, however many matches or page views reference them.
 const TTL_MS = 6 * 60 * 60 * 1000
 
+// Sportsbook/affiliate spam ("Best Betting Sites...", "How to Bet on...")
+// rides along on team + "World Cup" searches since it's genuinely on-topic
+// by keyword match — filter it out by title rather than tightening the
+// query further and losing real coverage.
+const BETTING_RE = /\b(bet|betting|bets|sportsbook|odds|wager|bonus code|free bet|promo code)\b/i
+
 // Normalized to the same shape ESPN's relatedNewsFor() articles already
 // render with (id/headline/published/links.web.href/images[0].url), so the
 // match-detail page can just concat both sources with no extra branching.
 function normalize(results: any[]): any[] {
-  return (results ?? []).map((r: any) => ({
-    id: r.article_id,
-    headline: r.title,
-    published: r.pubDate ? `${r.pubDate.replace(' ', 'T')}Z` : null,
-    links: { web: { href: r.link } },
-    images: r.image_url ? [{ url: r.image_url }] : [],
-  }))
+  return (results ?? [])
+    .filter((r: any) => !BETTING_RE.test(r.title ?? ''))
+    .map((r: any) => ({
+      id: r.article_id,
+      headline: r.title,
+      published: r.pubDate ? `${r.pubDate.replace(' ', 'T')}Z` : null,
+      links: { web: { href: r.link } },
+      images: r.image_url ? [{ url: r.image_url }] : [],
+    }))
 }
 
 export async function fetchTeamNews(teamName: string): Promise<any[]> {

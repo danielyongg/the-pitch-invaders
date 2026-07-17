@@ -1,10 +1,10 @@
 import { fetchEspnSummary, relatedNewsFor } from './espn'
 import { fetchFoxMatchup } from './fox'
 
-// Gemini's free tier (ai.google.dev) — separate account/quota from the
-// Anthropic key elsewhere in this project. No SDK, same raw-fetch pattern
-// as the ESPN/FOX/1xBet integrations.
-const GEMINI_MODEL = 'gemini-2.0-flash'
+// Groq's free tier (console.groq.com) — Gemini's free tier turned out to be
+// unavailable for this account (limit: 0 on every model), Groq's isn't.
+// OpenAI-compatible chat completions endpoint, no SDK.
+const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
 // Compact facts sheet, not JSON — cheaper on tokens and the model reads a
 // short bullet list just as well as a schema for a task this small.
@@ -43,24 +43,24 @@ function buildFacts(homeTeam: string, awayTeam: string, summary: any, fox: any):
   return lines.join('\n')
 }
 
-async function generateWithGemini(apiKey: string, homeTeam: string, awayTeam: string, facts: string): Promise<string | null> {
+async function generateWithGroq(apiKey: string, homeTeam: string, awayTeam: string, facts: string): Promise<string | null> {
   const prompt = `Write a neutral, engaging 3-4 sentence pre-match preview for ${homeTeam} vs ${awayTeam} using only the facts below. No headings, no bullet points, plain prose. Mention form, a key player or two, and what the head-to-head history suggests, if available.\n\n${facts}`
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`, {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }] }),
     })
     if (!res.ok) return null
     const json = await res.json()
-    return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? null
+    return json.choices?.[0]?.message?.content?.trim() ?? null
   } catch {
     return null
   }
 }
 
-// Rule-based fallback (no API call) — used when GEMINI_API_KEY isn't set,
-// or Gemini's free tier rate-limits/errors on a given request, so the
+// Rule-based fallback (no API call) — used when GROQ_API_KEY isn't set,
+// or Groq's free tier rate-limits/errors on a given request, so the
 // section still renders something instead of going empty.
 function formLine(team: string, events: any[]): string {
   if (!events?.length) return ''
@@ -129,10 +129,10 @@ export async function generatePregameSummary(leagueId: number, apiFootballId: nu
   ])
   if (!fox?.teamStats && !fox?.teamLeaders) return null
 
-  const geminiKey = process.env.GEMINI_API_KEY
-  if (geminiKey) {
+  const groqKey = process.env.GROQ_API_KEY
+  if (groqKey) {
     const facts = buildFacts(homeTeam, awayTeam, summary, fox)
-    const generated = await generateWithGemini(geminiKey, homeTeam, awayTeam, facts)
+    const generated = await generateWithGroq(groqKey, homeTeam, awayTeam, facts)
     if (generated) return generated
   }
 

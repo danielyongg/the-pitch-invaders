@@ -44,7 +44,7 @@ function buildFacts(homeTeam: string, awayTeam: string, summary: any, fox: any):
 }
 
 async function generateWithGroq(apiKey: string, homeTeam: string, awayTeam: string, facts: string): Promise<string | null> {
-  const prompt = `Write a neutral, engaging 3-4 sentence pre-match preview for ${homeTeam} vs ${awayTeam} using only the facts below. No headings, no bullet points, plain prose. Mention form, a key player or two, and what the head-to-head history suggests, if available.\n\n${facts}`
+  const prompt = `Write a neutral, engaging 3-4 sentence pre-match preview for ${homeTeam} vs ${awayTeam} using only the facts below. No headings, no bullet points, plain prose. Mention form, a key player or two, and what the head-to-head history suggests, if available. Do not invent or infer any stat, record, score, date, or count that is not explicitly listed below — if the facts don't cover something (e.g. how many head-to-head meetings a team has won), don't mention it.\n\n${facts}`
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',

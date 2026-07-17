@@ -501,17 +501,18 @@ export async function GET() {
   // already known (bracket seed resolved) but haven't kicked off yet. Runs
   // every cycle regardless of whether a match is currently live — separate
   // from the score-update path below, and each row is only ever filled once
-  // (see fillOnexbetPreMatch's guard).
+  // (see fillOnexbetPreMatch's guard). pregame_summary generation runs for
+  // Club Friendlies too (league_id 100) — 1xBet stays World Cup-only.
   const { data: upcoming } = await supabase
     .from('matches')
-    .select('id, api_football_id, kickoff_time, home_team_name, away_team_name, onexbet_stats, pregame_summary')
-    .eq('league_id', 77)
+    .select('id, league_id, api_football_id, kickoff_time, home_team_name, away_team_name, onexbet_stats, pregame_summary')
+    .in('league_id', [77, 100])
     .eq('status', 'NS')
     .gt('kickoff_time', new Date().toISOString())
   for (const row of upcoming ?? []) {
-    await fillOnexbetPreMatch(supabase, row.id, apiKey, row.home_team_name, row.away_team_name)
+    if (row.league_id === 77) await fillOnexbetPreMatch(supabase, row.id, apiKey, row.home_team_name, row.away_team_name)
     if (!row.pregame_summary) {
-      const text = await generatePregameSummary(77, row.api_football_id, row.kickoff_time, row.home_team_name, row.away_team_name)
+      const text = await generatePregameSummary(row.league_id, row.api_football_id, row.kickoff_time, row.home_team_name, row.away_team_name)
       if (text) await supabase.from('matches').update({ pregame_summary: text }).eq('id', row.id)
     }
   }

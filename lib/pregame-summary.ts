@@ -1,5 +1,6 @@
 import { fetchEspnSummary, relatedNewsFor } from './espn'
 import { fetchFoxMatchup } from './fox'
+import { fetchFotmobData } from './fotmob'
 
 // Groq's free tier (console.groq.com) — Gemini's free tier turned out to be
 // unavailable for this account (limit: 0 on every model), Groq's isn't.
@@ -46,6 +47,63 @@ function buildFacts(homeTeam: string, awayTeam: string, summary: any, fox: any, 
   }
 
   return lines.join('\n')
+}
+
+// Fotmob path — used when FOX has no data for this league (currently Club
+// Friendlies, which FOX doesn't index at all). teamForm's two entries are
+// already in home/away order with resultString ("W"/"D"/"L") given from
+// that side's own perspective, so unlike ESPN's lastFiveGames no remapping
+// is needed. h2h.matches still needs the same home/away remap as ESPN's
+// headToHeadGames, since a team can host either side across fixtures.
+function buildFriendlyFacts(homeTeam: string, awayTeam: string, fotmob: any): string {
+  const lines: string[] = []
+  const [homeForm, awayForm] = fotmob?.teamForm ?? [[], []]
+
+  if (homeForm?.length || awayForm?.length) {
+    lines.push(`${homeTeam} last 5 games: ` + (homeForm ?? []).map((m: any) => m.resultString).join(', '))
+    lines.push(`${awayTeam} last 5 games: ` + (awayForm ?? []).map((m: any) => m.resultString).join(', '))
+  }
+
+  const h2hMatches = fotmob?.h2h?.matches ?? []
+  if (h2hMatches.length > 0) {
+    lines.push('\nHead-to-head history (score always given as this match\'s home team first, away team second, regardless of who hosted that particular game):')
+    for (const m of h2hMatches.slice(0, 5)) {
+      const homeWasHome = String(m.home?.id) === String(fotmob.homeTeamId)
+      const [s1, s2] = (m.status?.scoreStr ?? '').split(' - ')
+      const homeScore = homeWasHome ? s1 : s2
+      const awayScore = homeWasHome ? s2 : s1
+      const date = m.time?.utcTime ? new Date(m.time.utcTime).toISOString().slice(0, 10) : ''
+      lines.push(`- ${homeTeam} ${homeScore}-${awayScore} ${awayTeam} (${date})`)
+    }
+  }
+
+  return lines.join('\n')
+}
+
+function buildFriendlyTemplateSummary(homeTeam: string, awayTeam: string, fotmob: any): string | null {
+  const [homeForm, awayForm] = fotmob?.teamForm ?? [[], []]
+  const h2hMatches = fotmob?.h2h?.matches ?? []
+
+  const formSentence = [
+    homeForm?.length ? `${homeTeam} come in ${homeForm.map((m: any) => m.resultString).join('')} across their last ${homeForm.length}.` : '',
+    awayForm?.length ? `${awayTeam} come in ${awayForm.map((m: any) => m.resultString).join('')} across their last ${awayForm.length}.` : '',
+  ].filter(Boolean).join(' ')
+
+  let h2hSentence = ''
+  if (h2hMatches.length > 0) {
+    const latest = h2hMatches[0]
+    const homeWasHome = String(latest.home?.id) === String(fotmob.homeTeamId)
+    const [s1, s2] = (latest.status?.scoreStr ?? '').split(' - ')
+    const homeScore = homeWasHome ? s1 : s2
+    const awayScore = homeWasHome ? s2 : s1
+    const date = latest.time?.utcTime ? new Date(latest.time.utcTime).toISOString().slice(0, 10) : ''
+    h2hSentence = homeScore === awayScore
+      ? `They last met on ${date}, drawing ${homeScore}-${awayScore}.`
+      : `${Number(homeScore) > Number(awayScore) ? homeTeam : awayTeam} won their last meeting ${homeScore}-${awayScore} on ${date}.`
+  }
+
+  const sentences = [formSentence, h2hSentence].filter(Boolean)
+  return sentences.length > 0 ? sentences.join(' ') : null
 }
 
 async function generateWithGroq(apiKey: string, homeTeam: string, awayTeam: string, facts: string): Promise<string | null> {
@@ -124,23 +182,36 @@ function buildTemplateSummary(homeTeam: string, awayTeam: string, summary: any, 
   return sentences.length > 0 ? sentences.join(' ') : null
 }
 
-// World Cup only for now (same scope as fetchFoxMatchup) — without FOX's
-// pre-match stats/leaders there's not enough structured data to build a
-// preview from, so this returns null rather than a near-empty paragraph.
+// World Cup uses FOX (teamStats/teamLeaders); Club Friendlies uses Fotmob
+// (h2h/teamForm) since FOX doesn't index friendlies at all (confirmed
+// 2026-07-17). Neither source covers the 5 leagues yet — this returns null
+// rather than a near-empty paragraph when neither has data for the match.
 export async function generatePregameSummary(leagueId: number, apiFootballId: number, kickoffIso: string, homeTeam: string, awayTeam: string): Promise<string | null> {
   const [summary, fox] = await Promise.all([
     fetchEspnSummary(leagueId, apiFootballId, kickoffIso, homeTeam, awayTeam),
     fetchFoxMatchup(kickoffIso, homeTeam, awayTeam),
   ])
-  if (!fox?.teamStats && !fox?.teamLeaders) return null
+
+  if (fox?.teamStats || fox?.teamLeaders) {
+    const groqKey = process.env.GROQ_API_KEY
+    if (groqKey) {
+      const espnHomeId = summary?.header?.competitions?.[0]?.competitors?.find((c: any) => c.homeAway === 'home')?.team?.id
+      const facts = buildFacts(homeTeam, awayTeam, summary, fox, espnHomeId)
+      const generated = await generateWithGroq(groqKey, homeTeam, awayTeam, facts)
+      if (generated) return generated
+    }
+    return buildTemplateSummary(homeTeam, awayTeam, summary, fox)
+  }
+
+  const fotmob = await fetchFotmobData(kickoffIso, homeTeam, awayTeam)
+  if (!fotmob?.h2h && !fotmob?.teamForm) return null
 
   const groqKey = process.env.GROQ_API_KEY
   if (groqKey) {
-    const espnHomeId = summary?.header?.competitions?.[0]?.competitors?.find((c: any) => c.homeAway === 'home')?.team?.id
-    const facts = buildFacts(homeTeam, awayTeam, summary, fox, espnHomeId)
+    const facts = buildFriendlyFacts(homeTeam, awayTeam, fotmob)
     const generated = await generateWithGroq(groqKey, homeTeam, awayTeam, facts)
     if (generated) return generated
   }
 
-  return buildTemplateSummary(homeTeam, awayTeam, summary, fox)
+  return buildFriendlyTemplateSummary(homeTeam, awayTeam, fotmob)
 }

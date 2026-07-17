@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { fetchEspnSummary, normalizeTeamName, relatedNewsFor } from '@/lib/espn'
 import { fetchFoxMatchup } from '@/lib/fox'
+import { fetchTeamNews } from '@/lib/newsdata'
 import { getFlagUrl } from '@/lib/flags'
 import type { Match } from '@/lib/supabase/types'
 
@@ -342,7 +343,10 @@ export default async function MatchDetailPage({ params }: Props) {
   const leaders: any[] = summary?.leaders ?? []
   const lastFiveGames: any[] = summary?.lastFiveGames ?? []
 
-  const relatedNews: any[] = relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name)
+  const [homeTeamNews, awayTeamNews] = await Promise.all([fetchTeamNews(m.home_team_name), fetchTeamNews(m.away_team_name)])
+  const allNews = [...relatedNewsFor(summary?.news?.articles ?? [], m.home_team_name, m.away_team_name), ...homeTeamNews, ...awayTeamNews]
+  const relatedNews: any[] = [...new Map(allNews.map(a => [a.id, a])).values()]
+    .sort((a, b) => new Date(b.published ?? 0).getTime() - new Date(a.published ?? 0).getTime())
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">

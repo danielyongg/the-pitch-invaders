@@ -1,0 +1,41 @@
+import { createAdminClient } from './supabase/admin'
+
+// Newsdata.io free tier is 200 requests/day — cached per team (not per
+// match) so teams that recur across many matches/rounds only cost one
+// fetch per TTL window, however many matches or page views reference them.
+const TTL_MS = 6 * 60 * 60 * 1000
+
+// Normalized to the same shape ESPN's relatedNewsFor() articles already
+// render with (id/headline/published/links.web.href/images[0].url), so the
+// match-detail page can just concat both sources with no extra branching.
+function normalize(results: any[]): any[] {
+  return (results ?? []).map((r: any) => ({
+    id: r.article_id,
+    headline: r.title,
+    published: r.pubDate ? `${r.pubDate.replace(' ', 'T')}Z` : null,
+    links: { web: { href: r.link } },
+    images: r.image_url ? [{ url: r.image_url }] : [],
+  }))
+}
+
+export async function fetchTeamNews(teamName: string): Promise<any[]> {
+  const apiKey = process.env.NEWSDATA_API_KEY
+  if (!apiKey) return []
+
+  const supabase = createAdminClient()
+  const { data: cached } = await supabase.from('team_news').select('articles, fetched_at').eq('team_name', teamName).maybeSingle()
+  if (cached && Date.now() - new Date(cached.fetched_at).getTime() < TTL_MS) {
+    return cached.articles ?? []
+  }
+
+  try {
+    const res = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&q=${encodeURIComponent(`"${teamName}"`)}&language=en&category=sports`)
+    if (!res.ok) return cached?.articles ?? []
+    const json = await res.json()
+    const articles = normalize(json.results ?? [])
+    await supabase.from('team_news').upsert({ team_name: teamName, articles, fetched_at: new Date().toISOString() })
+    return articles
+  } catch {
+    return cached?.articles ?? []
+  }
+}

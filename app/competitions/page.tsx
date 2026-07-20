@@ -61,7 +61,9 @@ export default async function CompetitionsPage() {
                 <div
                   className={`glass-card rounded-2xl p-5 flex items-center gap-3 transition ${available ? 'hover:bg-[var(--glass-03)]' : 'opacity-40 cursor-not-allowed'}`}
                 >
-                  {flagUrl ? (
+                  {c.logo ? (
+                    <img src={c.logo} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
+                  ) : flagUrl ? (
                     <img src={flagUrl} alt="" className="w-8 h-6 object-cover rounded flex-shrink-0" />
                   ) : (
                     <span

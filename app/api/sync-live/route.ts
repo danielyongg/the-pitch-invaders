@@ -204,10 +204,9 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
         home_penalty_score: u.homePenaltyScore ?? null,
         away_penalty_score: u.awayPenaltyScore ?? null,
       })
-      .eq('league_id', 77)
       .ilike('home_team_name', normalizeTeamName(u.homeTeam))
       .ilike('away_team_name', normalizeTeamName(u.awayTeam))
-      .select('id')
+      .select('id, league_id')
     if (error) {
       errors.push(`${u.homeTeam} vs ${u.awayTeam}: ${error.message}`)
       continue
@@ -227,10 +226,9 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
           home_penalty_score: u.awayPenaltyScore ?? null,
           away_penalty_score: u.homePenaltyScore ?? null,
         })
-        .eq('league_id', 77)
         .ilike('home_team_name', normalizeTeamName(u.awayTeam))
         .ilike('away_team_name', normalizeTeamName(u.homeTeam))
-        .select('id')
+        .select('id, league_id')
       if (swap.error) {
         errors.push(`${u.homeTeam} vs ${u.awayTeam}: ${swap.error.message}`)
         continue
@@ -245,13 +243,20 @@ async function applyUpdates(supabase: ReturnType<typeof createAdminClient>, upda
         if (scoreError) errors.push(`score ${u.homeTeam} vs ${u.awayTeam}: ${scoreError.message}`)
         else scored++
 
-        const seedError = await advanceBracketSeed(supabase, row.id, u)
-        if (seedError) errors.push(seedError)
+        // Bracket advancement and 1xBet stats are World Cup-only (bracket
+        // seeding doesn't exist for friendlies, and 1xBet's scarce 500/month
+        // quota shouldn't be spent on matches it was never scoped to cover).
+        if (row.league_id === 77) {
+          const seedError = await advanceBracketSeed(supabase, row.id, u)
+          if (seedError) errors.push(seedError)
 
-        await fillOnexbetStats(supabase, row.id, onexbetApiKey, u.homeTeam, u.awayTeam)
+          await fillOnexbetStats(supabase, row.id, onexbetApiKey, u.homeTeam, u.awayTeam)
+        }
       }
-      const advanceError = await advanceKnockoutWinner(supabase, u)
-      if (advanceError) errors.push(advanceError)
+      if ((data ?? []).some(row => row.league_id === 77)) {
+        const advanceError = await advanceKnockoutWinner(supabase, u)
+        if (advanceError) errors.push(advanceError)
+      }
     }
   }
   return { updated, scored, errors }
@@ -271,6 +276,12 @@ function map365StatusText(text: string, gameTimeDisplay?: string): string {
   return gameTimeDisplay || text
 }
 
+// Competitions worth pulling from 365scores' all-in-one date feed. World Cup
+// stays required (sawTrackedCompetition below), Club Friendlies is
+// best-effort — applyUpdates() only writes rows whose team names actually
+// match, so an extra competition included here can't clobber anything else.
+const TRACKED_365_COMPETITIONS = ['FIFA World Cup', 'Club Friendly Games']
+
 async function try365Scores(apiKey: string, dates: string[]): Promise<ScoreUpdate[] | null> {
   const HOST = '365scores.p.rapidapi.com'
 
@@ -282,11 +293,12 @@ async function try365Scores(apiKey: string, dates: string[]): Promise<ScoreUpdat
     const res = await fetch(url, { headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': HOST }, next: { revalidate: 0 } })
     if (!res.ok) continue
     const json = await res.json()
-    const wcCompetition = (json.competitions ?? []).find((c: any) => c.name === 'FIFA World Cup')
-    if (!wcCompetition) continue
-    sawWorldCup = true
+    const competitions = (json.competitions ?? []).filter((c: any) => TRACKED_365_COMPETITIONS.includes(c.name))
+    if (competitions.some((c: any) => c.name === 'FIFA World Cup')) sawWorldCup = true
+    if (competitions.length === 0) continue
 
-    const games = (json.games ?? []).filter((g: any) => g.competitionId === wcCompetition.id)
+    const competitionIds = new Set(competitions.map((c: any) => c.id))
+    const games = (json.games ?? []).filter((g: any) => competitionIds.has(g.competitionId))
     for (const g of games) {
       updates.push({
         homeTeam: g.homeCompetitor?.name,

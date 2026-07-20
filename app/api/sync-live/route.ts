@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { mapEspnStatus, normalizeTeamName } from '@/lib/espn'
+import { mapEspnStatus, normalizeTeamName, LEAGUE_SLUGS } from '@/lib/espn'
 import { resolveOnexbetMatchHash, resolveTeamHashes, fetchOnexbetStats, fetchOnexbetPreMatch } from '@/lib/onexbet'
 import { generatePregameSummary } from '@/lib/pregame-summary'
 
@@ -471,27 +471,32 @@ async function tryFootballDataIo(_key: string, dates: string[]): Promise<ScoreUp
 // ESPN: primary provider (2026-07-03) — free, no key, and unlike
 // free-football-api-data/footballdata.io it exposes penalty shootout scores
 // directly (`shootoutScore`), so knockout winners resolve correctly here
-// without waiting on a fallback.
+// without waiting on a fallback. World Cup + Club Friendlies (LEAGUE_SLUGS
+// has a scoreboard slug for both; the 5 European leagues aren't in season
+// yet so they're left out of the live-score loop for now).
 async function tryEspn(_key: string, dates: string[]): Promise<ScoreUpdate[] | null> {
+  const slugs = [LEAGUE_SLUGS[77], LEAGUE_SLUGS[100]]
   const updates: ScoreUpdate[] = []
-  for (const date of dates.map(d => d.replace(/-/g, ''))) {
-    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${date}`
-    const res = await fetch(url, { next: { revalidate: 0 } })
-    if (!res.ok) continue
-    const json = await res.json()
-    for (const e of json.events ?? []) {
-      const comp = e.competitions[0]
-      const home = comp.competitors.find((c: any) => c.homeAway === 'home')
-      const away = comp.competitors.find((c: any) => c.homeAway === 'away')
-      updates.push({
-        homeTeam: home?.team?.displayName,
-        awayTeam: away?.team?.displayName,
-        status: mapEspnStatus(comp.status.type, comp.status.displayClock),
-        homeScore: home?.score != null ? Number(home.score) : null,
-        awayScore: away?.score != null ? Number(away.score) : null,
-        homePenaltyScore: home?.shootoutScore != null ? Number(home.shootoutScore) : null,
-        awayPenaltyScore: away?.shootoutScore != null ? Number(away.shootoutScore) : null,
-      })
+  for (const slug of slugs) {
+    for (const date of dates.map(d => d.replace(/-/g, ''))) {
+      const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${date}`
+      const res = await fetch(url, { next: { revalidate: 0 } })
+      if (!res.ok) continue
+      const json = await res.json()
+      for (const e of json.events ?? []) {
+        const comp = e.competitions[0]
+        const home = comp.competitors.find((c: any) => c.homeAway === 'home')
+        const away = comp.competitors.find((c: any) => c.homeAway === 'away')
+        updates.push({
+          homeTeam: home?.team?.displayName,
+          awayTeam: away?.team?.displayName,
+          status: mapEspnStatus(comp.status.type, comp.status.displayClock),
+          homeScore: home?.score != null ? Number(home.score) : null,
+          awayScore: away?.score != null ? Number(away.score) : null,
+          homePenaltyScore: home?.shootoutScore != null ? Number(home.shootoutScore) : null,
+          awayPenaltyScore: away?.shootoutScore != null ? Number(away.shootoutScore) : null,
+        })
+      }
     }
   }
   return updates.filter(u => u.homeTeam && u.awayTeam)

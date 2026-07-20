@@ -478,11 +478,12 @@ async function tryFootballDataIo(_key: string, dates: string[]): Promise<ScoreUp
 // ESPN: primary provider (2026-07-03) — free, no key, and unlike
 // free-football-api-data/footballdata.io it exposes penalty shootout scores
 // directly (`shootoutScore`), so knockout winners resolve correctly here
-// without waiting on a fallback. World Cup + Club Friendlies (LEAGUE_SLUGS
-// has a scoreboard slug for both; the 5 European leagues aren't in season
-// yet so they're left out of the live-score loop for now).
+// without waiting on a fallback. Loops every tracked competition's slug
+// (World Cup, Club Friendlies, and the 5 European leagues) — the leagues
+// aren't in season yet, but their scoreboard queries just come back empty
+// until kickoff, so there's no reason to special-case them out.
 async function tryEspn(_key: string, dates: string[]): Promise<ScoreUpdate[] | null> {
-  const slugs = [LEAGUE_SLUGS[77], LEAGUE_SLUGS[100]]
+  const slugs = Object.values(LEAGUE_SLUGS)
   const updates: ScoreUpdate[] = []
   for (const slug of slugs) {
     for (const date of dates.map(d => d.replace(/-/g, ''))) {

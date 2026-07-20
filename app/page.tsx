@@ -228,7 +228,7 @@ export default async function HomePage() {
       )}
 
       <div className="max-w-7xl mx-auto px-8">
-      <LivePoller />
+      <LivePoller hasLiveMatch={(liveMatches?.length ?? 0) > 0} />
 
       {/* Live Now */}
       {liveMatches && liveMatches.length > 0 && (

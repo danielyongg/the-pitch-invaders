@@ -4,11 +4,18 @@ import { mapEspnStatus, normalizeTeamName, LEAGUE_SLUGS } from '@/lib/espn'
 import { resolveOnexbetMatchHash, resolveTeamHashes, fetchOnexbetStats, fetchOnexbetPreMatch } from '@/lib/onexbet'
 import { generatePregameSummary } from '@/lib/pregame-summary'
 
-// Server-side cooldown to protect RapidAPI quotas, regardless of how many
-// clients poll this endpoint concurrently.
-const COOLDOWN_MS = 3 * 60 * 1000 // 3 minutes
+// Server-side cooldown to protect RapidAPI fallback quotas, regardless of
+// how many clients poll this endpoint concurrently. ESPN (the primary
+// provider, tried first) has no request limit, so once a match is actually
+// live this shortens a lot — the fallbacks only ever get hit if ESPN itself
+// fails, so a short cooldown here doesn't burn their quota during live play.
+// Set from the *previous* run's result so a cooldown-blocked request (which
+// returns before touching the DB) still knows which cooldown to apply.
+const COOLDOWN_MS_LIVE = 20 * 1000 // 20 seconds
+const COOLDOWN_MS_IDLE = 3 * 60 * 1000 // 3 minutes
 let lastRun = 0
 let lastResult: any = null
+let cooldownMs = COOLDOWN_MS_IDLE
 
 type ScoreUpdate = {
   homeTeam: string
@@ -507,7 +514,7 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'API_FOOTBALL_KEY not set' }, { status: 500 })
 
   const now = Date.now()
-  if (now - lastRun < COOLDOWN_MS && lastResult) {
+  if (now - lastRun < cooldownMs && lastResult) {
     return NextResponse.json({ ...lastResult, cached: true })
   }
   lastRun = now
@@ -558,6 +565,8 @@ export async function GET() {
     .select('kickoff_time')
     .not('status', 'in', '(FT,AET,PEN)')
     .lte('kickoff_time', new Date().toISOString())
+
+  cooldownMs = activeMatches && activeMatches.length > 0 ? COOLDOWN_MS_LIVE : COOLDOWN_MS_IDLE
 
   if (!activeMatches || activeMatches.length === 0) {
     lastResult = { ok: true, source: null, updated: 0, scored: 0, errors: [], skipped: 'no active matches' }

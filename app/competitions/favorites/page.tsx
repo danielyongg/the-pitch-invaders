@@ -84,7 +84,7 @@ export default async function FavoritesPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-8 py-10">
-      <LivePoller />
+      <LivePoller hasLiveMatch={liveMatches.length > 0} />
       <div className="mb-8">
         <h1 className="font-[var(--font-anybody)] font-extrabold text-[40px] text-[var(--color-text-primary)] tracking-[-1px] [font-variation-settings:'wdth'_100]">
           ★ Favorites

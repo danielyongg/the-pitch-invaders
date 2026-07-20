@@ -70,7 +70,7 @@ export default async function CompetitionFixturesPage({ params, searchParams }: 
 
   return (
     <div>
-      <LivePoller />
+      <LivePoller hasLiveMatch={liveMatches.length > 0} />
 
       {!matches.length ? (
         <div className="text-center py-20 text-[var(--color-text-secondary)]">

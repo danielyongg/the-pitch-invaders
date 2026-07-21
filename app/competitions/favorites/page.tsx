@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import MatchCard from '@/components/matches/MatchCard'
+import MatchCardSwitch from '@/components/matches/MatchCardSwitch'
 import LivePoller from '@/components/matches/LivePoller'
 import { COMPETITIONS } from '@/lib/competitions'
 
@@ -78,7 +78,7 @@ export default async function FavoritesPage({ searchParams }: Props) {
   let predictionsMap: Record<string, { predicted_home: number; predicted_away: number; points_awarded: number | null }> = {}
   const { data: preds } = await supabase
     .from('predictions')
-    .select('match_id, predicted_home, predicted_away, points_awarded')
+    .select('match_id, predicted_home, predicted_away, predicted_winner_side, predicted_margin_bucket, points_awarded')
     .eq('user_id', user.id)
   if (preds) predictionsMap = Object.fromEntries(preds.map(p => [p.match_id, p]))
 
@@ -122,7 +122,7 @@ export default async function FavoritesPage({ searchParams }: Props) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {liveMatches.map(match => (
-                  <MatchCard key={match.id} match={match} prediction={predictionsMap[match.id] as any} userId={user.id} />
+                  <MatchCardSwitch key={match.id} match={match} prediction={predictionsMap[match.id] as any} userId={user.id} />
                 ))}
               </div>
             </section>
@@ -130,7 +130,7 @@ export default async function FavoritesPage({ searchParams }: Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {restMatches.map(match => (
-              <MatchCard key={match.id} match={match} prediction={predictionsMap[match.id] as any} userId={user.id} />
+              <MatchCardSwitch key={match.id} match={match} prediction={predictionsMap[match.id] as any} userId={user.id} />
             ))}
           </div>
         </>

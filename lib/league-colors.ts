@@ -10,4 +10,5 @@ export const LEAGUE_COLORS: Record<number, { bg: string; text: string }> = {
   55: { bg: '#024494', text: '#a9d4ff' },
   53: { bg: '#091c3e', text: '#9fc1ff' },
   100: { bg: '#3a3a3a', text: '#d4d4d4' },
+  200: { bg: '#c9082a', text: '#ffc2cd' },
 }

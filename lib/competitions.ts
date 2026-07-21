@@ -6,4 +6,5 @@ export const COMPETITIONS: { id: number; name: string; country: string; logo?: s
   { id: 54, name: 'Bundesliga', country: 'Germany' },
   { id: 55, name: 'Serie A', country: 'Italy' },
   { id: 53, name: 'Ligue 1', country: 'France' },
+  { id: 200, name: 'NBA', country: 'USA' },
 ]

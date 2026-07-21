@@ -7,10 +7,11 @@ export type FixturesMode = 'stage' | 'week' | 'matchday'
 
 const WORLD_CUP_LEAGUE_ID = 77
 const FRIENDLY_LEAGUE_ID = 100
+const NBA_LEAGUE_ID = 200
 
 export function fixturesModeFor(leagueId: number): FixturesMode {
   if (leagueId === WORLD_CUP_LEAGUE_ID) return 'stage'
-  if (leagueId === FRIENDLY_LEAGUE_ID) return 'week'
+  if (leagueId === FRIENDLY_LEAGUE_ID || leagueId === NBA_LEAGUE_ID) return 'week'
   return 'matchday'
 }
 

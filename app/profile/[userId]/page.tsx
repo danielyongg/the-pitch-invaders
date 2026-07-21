@@ -120,13 +120,18 @@ export default async function ProfilePage({ params }: Props) {
                 <div key={p.id} className="glass-card rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="flex items-start justify-between gap-3 sm:contents">
                     <div className="flex-1 text-sm text-[var(--color-text-primary)]">{match?.home_team_name} vs {match?.away_team_name}</div>
-                    <span className={`font-[var(--font-anybody)] font-bold text-sm text-right [font-variation-settings:'wdth'_100] sm:order-last sm:w-8 ${pts === 3 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[var(--color-live-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                    <span className={`font-[var(--font-anybody)] font-bold text-sm text-right [font-variation-settings:'wdth'_100] sm:order-last sm:w-8 ${pts === 3 || pts === 2 ? 'text-[var(--color-accent-text)]' : pts === 1 ? 'text-[var(--color-live-text)]' : 'text-[var(--color-text-muted)]'}`}>
                       +{pts}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
                     <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">
-                      Prediction: <span className="text-[var(--color-text-primary)] font-bold">{p.predicted_home}–{p.predicted_away}</span>
+                      Prediction:{' '}
+                      <span className="text-[var(--color-text-primary)] font-bold">
+                        {match?.sport === 'basketball'
+                          ? `${p.predicted_winner_side === 'home' ? match?.home_team_name : match?.away_team_name} wins (${p.predicted_margin_bucket})`
+                          : `${p.predicted_home}–${p.predicted_away}`}
+                      </span>
                     </div>
                     {match?.home_score != null && (
                       <div className="text-xs text-[var(--color-text-secondary)] font-[var(--font-jetbrains)] tracking-wide">

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { mapEspnStatus, normalizeTeamName, LEAGUE_SLUGS } from '@/lib/espn'
+import { mapEspnStatus, normalizeTeamName, LEAGUE_SLUGS, LEAGUE_SPORT_PATHS } from '@/lib/espn'
 import { resolveOnexbetMatchHash, resolveTeamHashes, fetchOnexbetStats, fetchOnexbetPreMatch } from '@/lib/onexbet'
 import { generatePregameSummary } from '@/lib/pregame-summary'
 
@@ -483,7 +483,12 @@ async function tryFootballDataIo(_key: string, dates: string[]): Promise<ScoreUp
 // aren't in season yet, but their scoreboard queries just come back empty
 // until kickoff, so there's no reason to special-case them out.
 async function tryEspn(_key: string, dates: string[]): Promise<ScoreUpdate[] | null> {
-  const slugs = Object.values(LEAGUE_SLUGS)
+  // Basketball has its own sync-live-nba route (different sport path,
+  // different update shape — no penalties/shootouts) — exclude it here so
+  // this loop doesn't also query "sports/soccer/nba/scoreboard".
+  const slugs = Object.entries(LEAGUE_SLUGS)
+    .filter(([id]) => (LEAGUE_SPORT_PATHS[Number(id)] ?? 'soccer') === 'soccer')
+    .map(([, slug]) => slug)
   const updates: ScoreUpdate[] = []
   for (const slug of slugs) {
     for (const date of dates.map(d => d.replace(/-/g, ''))) {

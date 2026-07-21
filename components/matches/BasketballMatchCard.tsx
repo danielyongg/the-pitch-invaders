@@ -119,7 +119,7 @@ export default function BasketballMatchCard({ match, prediction, userId }: Props
       </div>
 
       <div className="px-4 pb-4 pt-2 border-t border-[var(--color-border)] bg-[var(--glass-03)]">
-        {canPredict ? (
+        {canPredict && match.odds_spread != null ? (
           <BasketballPredictionInput
             matchId={match.id}
             userId={userId}
@@ -128,6 +128,10 @@ export default function BasketballMatchCard({ match, prediction, userId }: Props
             oddsSpread={match.odds_spread}
             existing={prediction}
           />
+        ) : canPredict ? (
+          <p className="text-xs text-center text-[var(--color-text-muted)] font-[var(--font-jetbrains)] tracking-wide py-1">
+            Odds not available yet — check back closer to tip-off
+          </p>
         ) : prediction?.predicted_winner_side ? (
           <div className="flex items-center justify-between">
             <div className="text-sm text-[var(--color-text-secondary)]">

@@ -11,6 +11,7 @@ alter table public.matches add constraint matches_sport_check check (sport in ('
 -- kickoff — same pattern as pregame_summary/onexbet_stats, since the market
 -- moves/disappears after that.
 alter table public.matches add column odds_spread numeric;
+alter table public.matches add constraint matches_odds_spread_check check (odds_spread is null or odds_spread >= 0);
 
 -- Football predictions are a score guess (predicted_home/predicted_away);
 -- basketball predictions are a winner-side + margin-bucket guess. A row only
@@ -60,7 +61,7 @@ begin
   end if;
 
   if v_sport = 'basketball' then
-    v_threshold := round(coalesce(v_odds_spread, 5));
+    v_threshold := round(abs(coalesce(v_odds_spread, 5)));
     v_actual_margin := abs(v_home_score - v_away_score);
     v_actual_winner := case when v_home_score > v_away_score then 'home' else 'away' end;
 

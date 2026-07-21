@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import MatchCard from '@/components/matches/MatchCard'
+import MatchCardSwitch from '@/components/matches/MatchCardSwitch'
 import { COMPETITIONS } from '@/lib/competitions'
 
 export default async function PredictPage() {
@@ -91,7 +91,7 @@ export default async function PredictPage() {
           <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-5 [font-variation-settings:'wdth'_100]">Upcoming Predictions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcoming.map(p => (
-              <MatchCard key={p.id} match={p.matches as any} prediction={p as any} userId={user.id} />
+              <MatchCardSwitch key={p.id} match={p.matches as any} prediction={p as any} userId={user.id} />
             ))}
           </div>
         </section>
@@ -102,7 +102,7 @@ export default async function PredictPage() {
           <h2 className="font-[var(--font-anybody)] font-bold text-2xl text-[var(--color-text-primary)] mb-5 [font-variation-settings:'wdth'_100]">Prediction History</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {past.map(p => (
-              <MatchCard key={p.id} match={p.matches as any} prediction={p as any} userId={user.id} />
+              <MatchCardSwitch key={p.id} match={p.matches as any} prediction={p as any} userId={user.id} />
             ))}
           </div>
         </section>

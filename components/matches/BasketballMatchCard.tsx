@@ -54,12 +54,19 @@ export default function BasketballMatchCard({ match, prediction, userId }: Props
   return (
     <div className="glass-card rounded-2xl overflow-hidden hover:border-[rgba(174,198,255,0.2)] transition">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-        <span
-          className="text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full"
-          style={{ backgroundColor: LEAGUE_COLORS[NBA_LEAGUE_ID].bg, color: LEAGUE_COLORS[NBA_LEAGUE_ID].text }}
-        >
-          NBA
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full"
+            style={{ backgroundColor: LEAGUE_COLORS[NBA_LEAGUE_ID].bg, color: LEAGUE_COLORS[NBA_LEAGUE_ID].text }}
+          >
+            NBA
+          </span>
+          {match.season_type === 'preseason' && (
+            <span className="text-xs font-[var(--font-jetbrains)] tracking-wide px-3 py-1 rounded-full bg-[var(--color-border-strong)] text-[var(--color-text-secondary)]">
+              Pre Season
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {isLive && (
             <span className="flex items-center gap-1 text-xs text-[var(--color-live-text)] font-[var(--font-jetbrains)] font-semibold tracking-wide">

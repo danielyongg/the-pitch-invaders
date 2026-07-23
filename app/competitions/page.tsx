@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
-import { COMPETITIONS } from '@/lib/competitions'
+import { COMPETITIONS, SPORTS } from '@/lib/competitions'
 import { getAvailableLeagueIds } from '@/lib/matches-availability'
 import { getFlagUrl } from '@/lib/flags'
 import { LEAGUE_COLORS } from '@/lib/league-colors'
@@ -25,9 +25,6 @@ export default async function CompetitionsPage() {
 
   const availableLeagueIds = await getAvailableLeagueIds(supabase)
 
-  const countries = Array.from(new Set(COMPETITIONS.map(c => c.country)))
-    .sort((a, b) => (a === 'International' ? -1 : b === 'International' ? 1 : a.localeCompare(b)))
-
   return (
     <div className="max-w-5xl mx-auto px-8 py-10">
       <div className="mb-8">
@@ -49,14 +46,14 @@ export default async function CompetitionsPage() {
         </div>
       )}
 
-      {countries.map(country => (
-        <div key={country} className="mb-8">
-          <h2 className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-3">{country}</h2>
+      {SPORTS.map(({ key, label }) => (
+        <div key={key} className="mb-8">
+          <h2 className="text-xs font-[var(--font-jetbrains)] tracking-widest uppercase text-[var(--color-text-secondary)] mb-3">{label}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {COMPETITIONS.filter(c => c.country === country).map(c => {
+            {COMPETITIONS.filter(c => c.sport === key).map(c => {
               const available = availableLeagueIds.includes(c.id)
               const colors = LEAGUE_COLORS[c.id] ?? LEAGUE_COLORS[77]
-              const flagUrl = getFlagUrl(country)
+              const flagUrl = getFlagUrl(c.country)
               const tile = (
                 <div
                   className={`glass-card rounded-2xl p-5 flex items-center gap-3 transition ${available ? 'hover:bg-[var(--glass-03)]' : 'opacity-40 cursor-not-allowed'}`}

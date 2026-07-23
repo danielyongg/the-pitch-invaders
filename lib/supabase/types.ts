@@ -51,6 +51,7 @@ export interface Database {
           venue: string | null
           sport: string
           odds_spread: number | null
+          season_type: string | null
           onexbet_stats: Json | null
           pregame_summary: string | null
           created_at: string
@@ -77,6 +78,7 @@ export interface Database {
           venue?: string | null
           sport?: string
           odds_spread?: number | null
+          season_type?: string | null
         }
         Update: {
           status?: string
@@ -88,6 +90,7 @@ export interface Database {
           pregame_summary?: string | null
           sport?: string
           odds_spread?: number | null
+          season_type?: string | null
           updated_at?: string
         }
       }

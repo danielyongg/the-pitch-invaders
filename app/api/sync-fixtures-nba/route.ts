@@ -33,6 +33,7 @@ export async function GET() {
       league_id: NBA_LEAGUE_ID,
       sport: 'basketball',
       season: Number(e.season?.year) || new Date(e.date).getFullYear(),
+      season_type: e.season?.slug ?? null,
       home_team_id: Number(home?.team?.id ?? 0),
       away_team_id: Number(away?.team?.id ?? 0),
       home_team_name: home?.team?.displayName ?? '',

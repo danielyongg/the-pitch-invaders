@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import MatchCard from '@/components/matches/MatchCard'
+import MatchCardSwitch from '@/components/matches/MatchCardSwitch'
 import LivePoller from '@/components/matches/LivePoller'
 
 const F = {
@@ -58,7 +58,7 @@ export default async function HomePage() {
   if (user && predictableMatchIds.length) {
     const { data: preds } = await supabase
       .from('predictions')
-      .select('match_id, predicted_home, predicted_away, points_awarded')
+      .select('match_id, predicted_home, predicted_away, predicted_winner_side, predicted_margin_bucket, points_awarded')
       .eq('user_id', user.id)
       .in('match_id', predictableMatchIds)
     if (preds) predictionsMap = Object.fromEntries(preds.map(p => [p.match_id, p]))
@@ -241,7 +241,7 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {liveMatches.map(match => (
-              <MatchCard key={match.id} match={match} prediction={predictionsMap[match.id]} userId={user?.id} />
+              <MatchCardSwitch key={match.id} match={match} prediction={predictionsMap[match.id]} userId={user?.id} />
             ))}
           </div>
         </section>
@@ -295,7 +295,7 @@ export default async function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {matches.map(match => (
-              <MatchCard key={match.id} match={match} prediction={predictionsMap[match.id]} userId={user?.id} />
+              <MatchCardSwitch key={match.id} match={match} prediction={predictionsMap[match.id]} userId={user?.id} />
             ))}
           </div>
         )}

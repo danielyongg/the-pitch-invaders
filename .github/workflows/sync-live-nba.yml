@@ -1,0 +1,13 @@
+name: Sync NBA live scores
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync-live-nba
+        run: curl -sf "https://the-pitch-invaders.vercel.app/api/sync-live-nba"

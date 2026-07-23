@@ -45,6 +45,18 @@ export const LEAGUE_SLUGS: Record<number, string> = {
   55: 'ita.1',
   53: 'fra.1',
   100: 'club.friendly',
+  200: 'nba',
+}
+
+// Sport-family URL segment ESPN's site-api needs ahead of the slug
+// (`sports/{sportPath}/{slug}/...`) — every league synced so far has been
+// soccer, so this only needs entries for anything else (basketball).
+export const LEAGUE_SPORT_PATHS: Record<number, string> = {
+  200: 'basketball',
+}
+
+function sportPathFor(leagueId: number): string {
+  return LEAGUE_SPORT_PATHS[leagueId] ?? 'soccer'
 }
 
 // World Cup rows predate this project's switch to ESPN (2026-07-03) and
@@ -53,7 +65,7 @@ export const LEAGUE_SLUGS: Record<number, string> = {
 // match. Resolve it for real by searching the scoreboard for the match's
 // kickoff date and matching on team names, same technique sync-live already
 // uses to apply score updates.
-export async function resolveEspnEventId(slug: string, kickoffIso: string, homeTeam: string, awayTeam: string): Promise<string | null> {
+export async function resolveEspnEventId(slug: string, kickoffIso: string, homeTeam: string, awayTeam: string, sportPath = 'soccer'): Promise<string | null> {
   const kickoff = new Date(kickoffIso)
   const home = normalizeTeamName(homeTeam).toLowerCase()
   const away = normalizeTeamName(awayTeam).toLowerCase()
@@ -63,7 +75,7 @@ export async function resolveEspnEventId(slug: string, kickoffIso: string, homeT
     d.setUTCDate(d.getUTCDate() + offset)
     const date = d.toISOString().slice(0, 10).replace(/-/g, '')
 
-    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${date}`, { next: { revalidate: 0 } })
+    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${sportPath}/${slug}/scoreboard?dates=${date}`, { next: { revalidate: 0 } })
     if (!res.ok) continue
     const json = await res.json()
     for (const e of json.events ?? []) {
@@ -84,9 +96,10 @@ export async function resolveEspnEventId(slug: string, kickoffIso: string, homeT
 export async function fetchEspnSummary(leagueId: number, apiFootballId: number, kickoffIso: string, homeTeam: string, awayTeam: string): Promise<any | null> {
   const slug = LEAGUE_SLUGS[leagueId]
   if (!slug) return null
+  const sportPath = sportPathFor(leagueId)
 
   async function trySummary(eventId: number | string): Promise<any | null> {
-    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/summary?event=${eventId}`, { next: { revalidate: 60 } })
+    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${sportPath}/${slug}/summary?event=${eventId}`, { next: { revalidate: 60 } })
     if (!res.ok) return null
     const json = await res.json()
     if (json.code) return null // ESPN's error shape: { code, message }
@@ -96,7 +109,7 @@ export async function fetchEspnSummary(leagueId: number, apiFootballId: number, 
   const direct = await trySummary(apiFootballId)
   if (direct) return direct
 
-  const resolvedId = await resolveEspnEventId(slug, kickoffIso, homeTeam, awayTeam)
+  const resolvedId = await resolveEspnEventId(slug, kickoffIso, homeTeam, awayTeam, sportPath)
   if (!resolvedId) return null
   return trySummary(resolvedId)
 }

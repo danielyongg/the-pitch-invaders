@@ -49,6 +49,9 @@ export interface Database {
           away_penalty_score: number | null
           round: string | null
           venue: string | null
+          sport: string
+          odds_spread: number | null
+          season_type: string | null
           onexbet_stats: Json | null
           pregame_summary: string | null
           created_at: string
@@ -73,6 +76,9 @@ export interface Database {
           away_penalty_score?: number | null
           round?: string | null
           venue?: string | null
+          sport?: string
+          odds_spread?: number | null
+          season_type?: string | null
         }
         Update: {
           status?: string
@@ -82,6 +88,9 @@ export interface Database {
           away_penalty_score?: number | null
           onexbet_stats?: Json | null
           pregame_summary?: string | null
+          sport?: string
+          odds_spread?: number | null
+          season_type?: string | null
           updated_at?: string
         }
       }
@@ -90,8 +99,10 @@ export interface Database {
           id: string
           user_id: string
           match_id: string
-          predicted_home: number
-          predicted_away: number
+          predicted_home: number | null
+          predicted_away: number | null
+          predicted_winner_side: string | null
+          predicted_margin_bucket: string | null
           points_awarded: number | null
           created_at: string
           updated_at: string
@@ -100,13 +111,17 @@ export interface Database {
           id?: string
           user_id: string
           match_id: string
-          predicted_home: number
-          predicted_away: number
+          predicted_home?: number | null
+          predicted_away?: number | null
+          predicted_winner_side?: string | null
+          predicted_margin_bucket?: string | null
           points_awarded?: number | null
         }
         Update: {
-          predicted_home?: number
-          predicted_away?: number
+          predicted_home?: number | null
+          predicted_away?: number | null
+          predicted_winner_side?: string | null
+          predicted_margin_bucket?: string | null
           points_awarded?: number | null
           updated_at?: string
         }

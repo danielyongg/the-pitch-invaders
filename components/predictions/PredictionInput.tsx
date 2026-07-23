@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 interface Props {
   matchId: string
   userId: string
-  existing?: { predicted_home: number; predicted_away: number } | null
+  existing?: { predicted_home: number | null; predicted_away: number | null } | null
   onSaved?: () => void
 }
 
